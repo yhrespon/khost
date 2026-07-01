@@ -1,0 +1,38 @@
+  {
+  "name": "knut-mdx",
+  "version": "2.0.0",
+  "description": "Bot WhatsApp multi-fonctions stable (Baileys 6.7.0, KNUT)",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node --trace-warnings index.js",
+    "dev": "nodemon index.js"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.7.0",
+    "@distube/ytdl-core": "^4.13.0",
+    "axios": "^1.7.5",
+    "chalk": "^5.3.0",
+    "cheerio": "^1.0.0-rc.12",
+    "dotenv": "^16.4.5",
+    "form-data": "^4.0.0",
+    "google-it": "^1.6.0",
+    "image-to-base64": "^2.2.0",
+    "jsdom": "^24.0.0",
+    "link-preview-js": "^3.0.0",
+    "mime-types": "^2.1.35",
+    "moment-timezone": "^0.5.45",
+    "node-fetch": "^3.3.2",
+    "pino": "^9.5.0",
+    "pino-pretty": "^11.2.2",
+    "qrcode-terminal": "^0.12.0",
+    "wa-sticker-formatter": "^4.4.4",
+    "yt-search": "^2.10.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  },
+  "engines": {
+    "node": ">=20.17.0"
+  }
+}

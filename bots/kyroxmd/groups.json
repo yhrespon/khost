@@ -1,0 +1,35 @@
+{
+  "120363047313771489@g.us": {
+    "antilink": true,
+    "antibot": false,
+    "antimessage": true
+  },
+  "120363424627120132@g.us": {
+    "antilink": false,
+    "antibot": false,
+    "antimessage": false,
+    "antiaudio": false,
+    "antitag": false,
+    "antipurge": false,
+    "antikickall": false,
+    "antidemote": true
+  },
+  "120363403924034903@g.us": {
+    "antilink": false,
+    "antibot": false,
+    "antimessage": false,
+    "antiaudio": false,
+    "antitag": false,
+    "antipurge": false,
+    "antikickall": true
+  },
+  "120363191895871876@g.us": {
+    "antilink": false,
+    "antibot": false,
+    "antimessage": false,
+    "antiaudio": false,
+    "antitag": false,
+    "antipurge": false,
+    "antikickall": true
+  }
+}
