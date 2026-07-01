@@ -1,0 +1,36 @@
+import fs from "fs";
+
+export const name = "xp";
+
+const XP_FILE = "./xp.json";
+
+function loadXP() {
+  if (!fs.existsSync(XP_FILE)) return {};
+  return JSON.parse(fs.readFileSync(XP_FILE));
+}
+
+function saveXP(data) {
+  fs.writeFileSync(XP_FILE, JSON.stringify(data, null, 2));
+}
+
+export async function execute(sock, msg, args) {
+  try {
+    const from = msg.key.remoteJid;
+    const user = msg.key.participant || msg.key.remoteJid;
+
+    const xpData = loadXP();
+    xpData[user] = (xpData[user] || 0) + 10;
+
+    saveXP(xpData);
+
+    await sock.sendMessage(from, {
+      text: `⭐ XP actuel : ${xpData[user]}
+
+BY DEV KIYOTAKA
+j'suis là pour ma première fois accepter mon silence et a ma deuxième version vous ne serez pas deçu`
+    }, { quoted: msg });
+
+  } catch (err) {
+    console.error("Erreur XP :", err);
+  }
+}
