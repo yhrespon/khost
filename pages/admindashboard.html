@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <title>Krinyx | Admin</title>
+  <!-- Krinyx: apply theme+lang instantly to avoid flash -->
+  <script>(function(){var t=localStorage.getItem("krinyx_theme")||"dark";document.documentElement.setAttribute("data-theme",t);var l=localStorage.getItem("krinyx_lang")||"fr";document.documentElement.setAttribute("lang",l);})()</script>
+  <link rel="stylesheet" href="/theme_/theme.css"/>
+  <style>
+    html,body{height:100%;overflow:hidden;}
+    .wrap{display:flex;flex-direction:column;height:100%;max-width:1000px;margin:0 auto;}
+
+    /* Header */
+    .hdr{display:flex;align-items:center;justify-content:space-between;padding:var(--s3) var(--s4);border-bottom:1px solid var(--border);flex-shrink:0;}
+    .hdr-l{display:flex;align-items:center;gap:var(--s3);}
+    .hdr-title{font-size:.95rem;font-weight:700;}
+    .hdr-sub{font-size:.7rem;color:var(--text-3);}
+    .badge-root{font-size:.58rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:2px 8px;border-radius:var(--r-full);background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.25);}
+
+    /* Tabs */
+    .tabs{display:flex;padding:0 var(--s4);border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto;scrollbar-width:none;}
+    .tabs::-webkit-scrollbar{display:none;}
+    .tab{padding:var(--s3) var(--s3);font-size:.75rem;font-weight:600;color:var(--text-3);cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;transition:all var(--t-fast);}
+    .tab.active{color:var(--text);border-bottom-color:var(--accent);}
+    .tab:hover:not(.active){color:var(--text-2);}
+
+    /* Body */
+    .body{flex:1;overflow-y:auto;padding:var(--s4);}
+    .body::-webkit-scrollbar{width:3px;}
+    .body::-webkit-scrollbar-thumb{background:var(--border-2);border-radius:3px;}
+    .view{display:none;}
+    .view.active{display:block;}
+
+    /* Stats grid */
+    .sgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--s3);margin-bottom:var(--s4);}
+    @media(min-width:480px){.sgrid{grid-template-columns:repeat(3,1fr);}}
+    @media(min-width:700px){.sgrid{grid-template-columns:repeat(6,1fr);}}
+    .sc{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r-md);padding:var(--s4) var(--s3);text-align:center;transition:transform var(--t-fast);}
+    .sc:hover{transform:translateY(-1px);}
+    .sc-v{font-size:1.6rem;font-weight:800;line-height:1;margin-bottom:3px;}
+    .sc-l{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);}
+    .sc.grn{border-color:rgba(34,197,94,.2);} .sc.grn .sc-v{color:var(--green);}
+    .sc.red{border-color:rgba(239,68,68,.2);} .sc.red .sc-v{color:var(--red);}
+    .sc.blu{border-color:rgba(96,165,250,.2);} .sc.blu .sc-v{color:var(--blue);}
+    .sc.pur{border-color:rgba(167,139,250,.2);}.sc.pur .sc-v{color:var(--purple);}
+    .sc.ora{border-color:rgba(249,115,22,.2);} .sc.ora .sc-v{color:var(--orange);}
+
+    /* Section label */
+    .slbl{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-3);margin:var(--s5) 0 var(--s3);}
+    .slbl:first-child{margin-top:0;}
+
+    /* Quick actions */
+    .qa-g{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--s2);}
+    @media(min-width:500px){.qa-g{grid-template-columns:repeat(4,1fr);}}
+    .qa{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r-md);padding:var(--s4) var(--s3);text-align:center;cursor:pointer;transition:all var(--t-fast);}
+    .qa:hover{border-color:var(--border-2);transform:translateY(-1px);}
+    .qa-ic{font-size:1.3rem;margin-bottom:4px;}
+    .qa-lb{font-size:.7rem;font-weight:600;color:var(--text-2);}
+
+    /* Search */
+    .srow{display:flex;gap:var(--s2);margin-bottom:var(--s3);}
+    .si{flex:1;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r-md);padding:var(--s2) var(--s3);font-size:.82rem;color:var(--text);outline:none;transition:border-color var(--t-fast);}
+    .si:focus{border-color:var(--border-focus);}
+    .si::placeholder{color:var(--text-3);}
+
+    /* Count label */
+    .cnt{font-size:.7rem;color:var(--text-3);margin-bottom:var(--s3);}
+
+    /* User row */
+    .ulist{display:flex;flex-direction:column;gap:var(--s2);}
+    .urow{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r-md);padding:var(--s3) var(--s4);display:flex;align-items:center;gap:var(--s3);transition:border-color var(--t-fast);}
+    .urow:hover{border-color:var(--border-2);}
+    .uav{width:36px;height:36px;border-radius:50%;flex-shrink:0;background:var(--bg-3);border:1px solid var(--border-2);display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:700;color:var(--text-2);}
+    .uav.adm{background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.3);color:var(--red);}
+    .uinf{flex:1;min-width:0;}
+    .unm{font-size:.85rem;font-weight:600;color:var(--text);display:flex;align-items:center;gap:var(--s2);flex-wrap:wrap;}
+    .uem{font-size:.7rem;color:var(--text-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .udt{font-size:.65rem;color:var(--text-3);}
+    .umeta{display:flex;gap:var(--s2);align-items:center;flex-shrink:0;}
+    .ucr{font-size:.68rem;font-family:var(--font-mono);font-weight:600;background:var(--bg-3);border:1px solid var(--border);padding:2px 8px;border-radius:var(--r-full);color:var(--text-2);}
+    .uact{display:flex;gap:var(--s1);flex-shrink:0;}
+    .ibtn{width:28px;height:28px;border-radius:var(--r-sm);background:var(--bg-3);border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-2);transition:all var(--t-fast);}
+    .ibtn:hover{border-color:var(--border-2);color:var(--text);}
+    .ibtn.ed:hover{background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.3);color:var(--green);}
+    .ibtn.dl:hover{background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.3);color:var(--red);}
+
+    /* Badges */
+    .bg{font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:1px 6px;border-radius:var(--r-full);}
+    .bg.a{background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.25);}
+    .bg.b{background:rgba(249,115,22,.1);color:var(--orange);border:1px solid rgba(249,115,22,.25);}
+
+    /* Panel row */
+    .prow{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r-md);padding:var(--s3) var(--s4);display:flex;align-items:center;gap:var(--s3);margin-bottom:var(--s2);transition:border-color var(--t-fast);}
+    .prow:hover{border-color:var(--border-2);}
+    .pinf{flex:1;min-width:0;}
+    .pnm{font-size:.85rem;font-weight:600;}
+    .pmeta{font-size:.7rem;color:var(--text-3);margin-top:1px;}
+
+    /* Modal */
+    .ov{position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(6px);z-index:300;display:none;align-items:center;justify-content:center;padding:var(--s4);}
+    .ov.open{display:flex;}
+    .mb{background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-lg);padding:var(--s5);width:100%;max-width:440px;animation:mIn .2s var(--ease);}
+    @keyframes mIn{from{opacity:0;transform:scale(.95) translateY(8px)}}
+    .mt{font-size:.95rem;font-weight:700;margin-bottom:var(--s4);}
+    .mf{margin-bottom:var(--s3);}
+    .ml{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-3);display:block;margin-bottom:4px;}
+    .mi{width:100%;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r-md);padding:var(--s2) var(--s3);font-size:.85rem;color:var(--text);outline:none;box-sizing:border-box;transition:border-color var(--t-fast);font-family:var(--font-body);}
+    .mi:focus{border-color:var(--border-focus);}
+    .mr{display:flex;gap:var(--s2);margin-top:var(--s4);}
+    .me{font-size:.72rem;color:var(--red);margin-top:var(--s2);min-height:16px;}
+
+    /* Danger */
+    .dcard{background:rgba(239,68,68,.04);border:1px solid rgba(239,68,68,.15);border-radius:var(--r-md);padding:var(--s4);margin-bottom:var(--s3);}
+    .dt{font-size:.78rem;font-weight:700;color:var(--red);margin-bottom:4px;}
+    .dd{font-size:.72rem;color:var(--text-3);margin-bottom:var(--s3);}
+
+    /* Bulk */
+    .bk{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r-md);padding:var(--s4);}
+    .bk-r{display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--s2);margin-bottom:var(--s3);}
+    @media(max-width:500px){.bk-r{grid-template-columns:1fr;}}
+
+    /* Timeline récents */
+    .tl{display:flex;flex-direction:column;gap:var(--s2);}
+    .tli{display:flex;align-items:center;gap:var(--s3);background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r-md);padding:var(--s3);}
+    .tl-av{width:32px;height:32px;border-radius:50%;background:var(--bg-3);border:1px solid var(--border-2);display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;flex-shrink:0;}
+    .tl-inf{flex:1;min-width:0;}
+    .tl-nm{font-size:.82rem;font-weight:600;}
+    .tl-dt{font-size:.68rem;color:var(--text-3);}
+    .tl-cr{font-size:.68rem;font-family:var(--font-mono);color:var(--text-2);flex-shrink:0;}
+
+    /* Toast */
+    .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);z-index:500;opacity:0;transition:all .25s var(--ease);background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-full);padding:.5rem 1.25rem;font-size:.82rem;font-weight:600;white-space:nowrap;box-shadow:var(--shadow-lg);pointer-events:none;}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+    .toast.ok{border-color:rgba(34,197,94,.4);color:var(--green);}
+    .toast.err{border-color:rgba(239,68,68,.4);color:var(--red);}
+
+    .empty{text-align:center;padding:var(--s7) var(--s4);color:var(--text-3);font-size:.82rem;}
+    .spin{text-align:center;padding:var(--s5);color:var(--text-3);font-size:.82rem;}
+
+    /* Switch toggle — Services */
+    .svc-switch{position:relative;display:inline-block;width:42px;height:24px;flex-shrink:0;}
+    .svc-switch input{opacity:0;width:0;height:0;}
+    .svc-switch-slider{position:absolute;cursor:pointer;inset:0;background:var(--bg-3);border:1px solid var(--border-2);border-radius:var(--r-full);transition:.2s;}
+    .svc-switch-slider:before{content:"";position:absolute;width:18px;height:18px;left:2px;top:2px;background:var(--text-3);border-radius:50%;transition:.2s;}
+    .svc-switch input:checked + .svc-switch-slider{background:linear-gradient(135deg,#1a5cff,#4d84ff);border-color:transparent;}
+    .svc-switch input:checked + .svc-switch-slider:before{transform:translateX(18px);background:#fff;}
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- HEADER -->
+  <div class="hdr">
+    <div class="hdr-l">
+      <button onclick="history.back()" class="btn btn-ghost btn-sm" style="padding:0 var(--s2);">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <div>
+        <div style="display:flex;align-items:center;gap:var(--s2);">
+          <span class="hdr-title">Admin Dashboard</span>
+          <span class="badge-root">ROOT</span>
+        </div>
+        <div class="hdr-sub" id="hdr-sub">Krinyx</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:var(--s2);align-items:center;">
+      <button onclick="window.location.href='/dashboard'" class="btn btn-ghost btn-sm"> User</button>
+      <button onclick="doLogout()" class="btn btn-ghost btn-sm" style="color:var(--red);">Déco</button>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <div class="tab active" data-tab="overview"> Vue d'ensemble</div>
+    <div class="tab" data-tab="members"> Membres</div>
+    <div class="tab" data-tab="panels"> Panels</div>
+    <div class="tab" data-tab="tools"> Outils</div>
+    <div class="tab" data-tab="services"> Services</div>
+    <div class="tab" data-tab="announcements" onclick="switchTab('announcements')"> Annonces</div>
+    <div class="tab" data-tab="support" onclick="window.location.href='/adminsupport'"> Support <span id="ticket-badge" style="background:rgba(239,68,68,.15);color:var(--red);font-size:.6rem;font-weight:700;padding:1px 6px;border-radius:9999px;margin-left:4px;display:none;"></span></div>
+  </div>
+
+  <!-- BODY -->
+  <div class="body">
+
+    <!--  OVERVIEW  -->
+    <div class="view active" id="view-overview">
+      <div class="slbl">Statistiques globales</div>
+      <div class="sgrid">
+        <div class="sc">     <div class="sc-v" id="s-total">—</div>   <div class="sc-l">Membres</div></div>
+        <div class="sc grn"> <div class="sc-v" id="s-active">—</div>  <div class="sc-l">Actifs</div></div>
+        <div class="sc red"> <div class="sc-v" id="s-banned">—</div>  <div class="sc-l">Bannis</div></div>
+        <div class="sc blu"> <div class="sc-v" id="s-panels">—</div>  <div class="sc-l">Panels</div></div>
+        <div class="sc pur"> <div class="sc-v" id="s-credits">—</div> <div class="sc-l">Crédits</div></div>
+        <div class="sc ora"> <div class="sc-v" id="s-admins">—</div>  <div class="sc-l">Admins</div></div>
+      </div>
+
+      <div class="slbl">Actions rapides</div>
+      <div class="qa-g">
+        <div class="qa" onclick="goTab('members')"><div class="qa-ic"></div><div class="qa-lb">Membres</div></div>
+        <div class="qa" onclick="goTab('panels')"><div class="qa-ic"></div><div class="qa-lb">Panels</div></div>
+        <div class="qa" onclick="openCreatePanel()"><div class="qa-ic"></div><div class="qa-lb">Créer panel</div></div>
+        <div class="qa" onclick="goTab('tools')"><div class="qa-ic"></div><div class="qa-lb">Outils</div></div>
+        <div class="qa" onclick="goTab('services')"><div class="qa-ic"></div><div class="qa-lb">Services</div></div>
+      </div>
+
+      <div class="slbl">Derniers membres inscrits</div>
+      <div class="tl" id="recent-list"><div class="spin-wrap" style="display:flex;align-items:center;gap:8px;padding:var(--s4);color:var(--text-3);font-size:.82rem;"><div class="dh-spin dh-spin-sm"><img src="/logo.jpg" alt="" style="width:100%;height:100%;object-fit:cover;"/></div> Chargement…</div></div>
+    </div>
+
+    <!--  MEMBERS  -->
+    <div class="view" id="view-members">
+      <div class="srow">
+        <input class="si" id="usearch" placeholder=" Rechercher par nom ou email…" oninput="filterUsers()"/>
+        <button class="btn btn-primary btn-sm" onclick="loadUsers()" title="Actualiser"></button>
+        <button class="btn btn-ghost btn-sm" onclick="openAddUser()" title="Ajouter">+ Membre</button>
+      </div>
+      <div class="cnt" id="u-cnt"></div>
+      <div class="ulist" id="ulist"><div class="spin-wrap" style="display:flex;align-items:center;gap:8px;padding:var(--s4);color:var(--text-3);font-size:.82rem;"><div class="dh-spin dh-spin-sm"><img src="/logo.jpg" alt="" style="width:100%;height:100%;object-fit:cover;"/></div> Chargement…</div></div>
+    </div>
+
+    <!--  PANELS  -->
+    <div class="view" id="view-panels">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--s3);">
+        <span style="font-size:.82rem;font-weight:600;" id="p-cnt"></span>
+        <button class="btn btn-primary btn-sm" onclick="openCreatePanel()">+ Créer</button>
+      </div>
+      <div id="plist"><div class="spin-wrap" style="display:flex;align-items:center;gap:8px;padding:var(--s4);color:var(--text-3);font-size:.82rem;"><div class="dh-spin dh-spin-sm"><img src="/logo.jpg" alt="" style="width:100%;height:100%;object-fit:cover;"/></div> Chargement…</div></div>
+    </div>
+
+    <!--  TOOLS  -->
+    <div class="view" id="view-tools">
+
+      <div class="slbl">Maintenance</div>
+      <div class="dcard">
+        <div class="dt"> Nettoyer les sessions orphelines</div>
+        <div class="dd">Supprime les dossiers de session sans fichier creds.json valide.</div>
+        <button class="btn btn-ghost btn-sm" style="border-color:rgba(239,68,68,.3);color:var(--red);" onclick="cleanSessions()">Nettoyer maintenant</button>
+      </div>
+
+      <div class="slbl">Crédits en masse</div>
+      <div class="bk">
+        <div class="bk-r">
+          <div><label class="ml">Opération</label>
+            <select class="mi" id="bop">
+              <option value="add">Ajouter</option>
+              <option value="sub">Soustraire</option>
+              <option value="set">Définir à</option>
+            </select>
+          </div>
+          <div><label class="ml">Montant (CR)</label>
+            <input class="mi" id="bval" type="number" min="0" placeholder="50"/>
+          </div>
+          <div><label class="ml">Cible</label>
+            <select class="mi" id="btgt">
+              <option value="all">Tous les membres</option>
+              <option value="active">Actifs seulement</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="doBulk()"> Appliquer</button>
+      </div>
+
+      <div class="slbl" style="margin-top:var(--s5);">Bannissement en masse</div>
+      <div class="dcard">
+        <div class="dt"> Bannir tous les membres inactifs</div>
+        <div class="dd">Change le statut en "banni" pour tous les membres non-admin avec 0 crédits.</div>
+        <button class="btn btn-ghost btn-sm" style="border-color:rgba(239,68,68,.3);color:var(--red);" onclick="banInactive()">Exécuter</button>
+      </div>
+
+    </div>
+
+    <!--  SERVICES  -->
+    <div class="view" id="view-services">
+      <div class="slbl">Disponibilité des services</div>
+      <div class="dd" style="margin-bottom:var(--s4);">
+        Désactive un service pour bloquer son accès sur tout le site. Les utilisateurs verront un message indiquant qu'il sera bientôt disponible.
+      </div>
+      <div id="svc-groups"><div class="spin-wrap" style="display:flex;align-items:center;gap:8px;padding:var(--s4);color:var(--text-3);font-size:.82rem;"><div class="dh-spin dh-spin-sm"><img src="/logo.jpg" alt="" style="width:100%;height:100%;object-fit:cover;"/></div> Chargement…</div></div>
+
+      <div class="slbl" style="margin-top:var(--s5);">Historique des changements</div>
+      <div class="cnt" id="svc-hist-cnt"></div>
+      <div id="svc-history"></div>
+    </div>
+  </div>
+</div>
+
+<!--  MODAL EDIT SERVICE MESSAGE  -->
+<div class="ov" id="m-svc-msg">
+  <div class="mb">
+    <div class="mt"> Message d'indisponibilité</div>
+    <div class="dd" style="margin-bottom:var(--s3);" id="svc-msg-name"></div>
+    <input type="hidden" id="svc-msg-id"/>
+    <div class="mf"><label class="ml">Message affiché aux utilisateurs</label>
+      <input class="mi" id="svc-msg-input" placeholder="Ce service sera bientôt disponible. Merci de votre patience 🙏"/>
+    </div>
+    <div class="mr">
+      <button class="btn btn-primary" style="flex:1;" onclick="saveServiceMessage()"> Enregistrer</button>
+      <button class="btn btn-ghost" onclick="cm('m-svc-msg')">Annuler</button>
+    </div>
+  </div>
+</div>
+
+
+<!--  MODAL EDIT USER  -->
+<div class="ov" id="m-edit">
+  <div class="mb">
+    <div class="mt"> Modifier <span id="mu-nm" style="color:var(--text-3);font-weight:400;font-size:.85rem;"></span></div>
+    <input type="hidden" id="mu-id"/>
+    <div class="mf"><label class="ml">Nouveau mot de passe</label>
+      <input class="mi" id="mu-pw" type="password" placeholder="Laisser vide = inchangé"/>
+    </div>
+    <div class="mf"><label class="ml">Crédits</label>
+      <div style="display:flex;gap:var(--s2);">
+        <select class="mi" id="mu-cop" style="width:130px;flex-shrink:0;">
+          <option value="set">Définir à</option>
+          <option value="add">Ajouter</option>
+          <option value="sub">Soustraire</option>
+        </select>
+        <input class="mi" id="mu-cv" type="number" min="0" placeholder="Montant"/>
+      </div>
+    </div>
+    <div class="mf"><label class="ml">Statut</label>
+      <select class="mi" id="mu-st">
+        <option value="active"> Actif</option>
+        <option value="banned"> Banni</option>
+      </select>
+    </div>
+    <div class="me" id="mu-err"></div>
+    <div class="mr">
+      <button class="btn btn-primary" style="flex:1;" onclick="saveUser()"> Sauvegarder</button>
+      <button class="btn btn-ghost" onclick="cm('m-edit')">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!--  MODAL ADD USER  -->
+<div class="ov" id="m-add">
+  <div class="mb">
+    <div class="mt"> Ajouter un membre</div>
+    <div class="mf"><label class="ml">Nom d'utilisateur</label><input class="mi" id="au-un" placeholder="username"/></div>
+    <div class="mf"><label class="ml">Email</label><input class="mi" id="au-em" type="email" placeholder="email@exemple.com"/></div>
+    <div class="mf"><label class="ml">Mot de passe</label><input class="mi" id="au-pw" type="password" placeholder="Min 8 caractères, 1 maj, 1 chiffre"/></div>
+    <div class="mf"><label class="ml">Crédits initiaux</label><input class="mi" id="au-cr" type="number" value="50" min="0"/></div>
+    <div class="me" id="au-err"></div>
+    <div class="mr">
+      <button class="btn btn-primary" style="flex:1;" onclick="addUser()">Créer le compte</button>
+      <button class="btn btn-ghost" onclick="cm('m-add')">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!--  MODAL DELETE USER  -->
+<div class="ov" id="m-del">
+  <div class="mb">
+    <div class="mt"> Supprimer le membre</div>
+    <p style="font-size:.82rem;color:var(--text-2);margin-bottom:var(--s4);">Supprimer <strong id="md-nm"></strong> ? Action irréversible.</p>
+    <input type="hidden" id="md-id"/>
+    <div class="mr">
+      <button class="btn btn-primary" style="flex:1;background:var(--red);border-color:var(--red);" onclick="doDelete()">Supprimer</button>
+      <button class="btn btn-ghost" onclick="cm('m-del')">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!--  MODAL CREATE PANEL  -->
+<div class="ov" id="m-panel">
+  <div class="mb">
+    <div class="mt"> Créer un panel</div>
+    <div class="mf"><label class="ml">ID utilisateur</label><input class="mi" id="cp-id" type="number" placeholder="ID du membre"/></div>
+    <div class="mf"><label class="ml">Nom du panel</label><input class="mi" id="cp-nm" placeholder="Mon Panel"/></div>
+    <div class="mf"><label class="ml">URL du panel</label><input class="mi" id="cp-url" placeholder="https://panel.exemple.com"/></div>
+    <div class="mf"><label class="ml">Utilisateur</label><input class="mi" id="cp-us" placeholder="username"/></div>
+    <div class="mf"><label class="ml">Mot de passe</label><input class="mi" id="cp-pw" placeholder="password"/></div>
+    <div class="me" id="cp-err"></div>
+    <div class="mr">
+      <button class="btn btn-primary" style="flex:1;" onclick="doCreatePanel()">Créer</button>
+      <button class="btn btn-ghost" onclick="cm('m-panel')">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+
+/*  Auth  */
+var adm = null;
+try { adm = JSON.parse(localStorage.getItem('krinyx_session')); } catch(e){}
+if (!adm || !adm.isAdmin && !adm.isadmin) { window.location.href = '/admin-login'; }
+document.getElementById('hdr-sub').textContent = 'Admin : ' + (adm?.username || '—');
+
+/*  Toast  */
+var _tt;
+function toast(msg, type) {
+  var el = document.getElementById('toast');
+  el.textContent = msg; el.className = 'toast show ' + (type||'info');
+  clearTimeout(_tt); _tt = setTimeout(() => el.className = 'toast', 3200);
+}
+
+/*  Escape HTML  */
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+/*  Tabs  */
+function goTab(t) {
+  document.querySelectorAll('.tab').forEach(x => x.classList.toggle('active', x.dataset.tab === t));
+  document.querySelectorAll('.view').forEach(x => x.classList.toggle('active', x.id === 'view-' + t));
+  if (t === 'overview') { loadStats(); loadRecent(); }
+  if (t === 'members')  loadUsers();
+  if (t === 'panels')   loadPanels();
+  if (t === 'services') loadServices();
+}
+document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => goTab(t.dataset.tab)));
+
+/*  Modals  */
+function cm(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.ov').forEach(o => o.addEventListener('click', e => { if (e.target === o) cm(o.id); }));
+
+/* 
+   STATS
+ */
+function loadStats() {
+  fetch('/api/stats').then(r=>r.json()).then(d => {
+    if (!d.success) return;
+    var s = d.stats;
+    ['total','active','banned','panels','credits','admins'].forEach(k => {
+      var el = document.getElementById('s-'+k);
+      if (el) el.textContent = s[k === 'panels' ? 'totalPanels' : k === 'credits' ? 'totalCredits' : k] ?? '—';
+    });
+  }).catch(() => toast('Erreur stats', 'err'));
+}
+
+/* 
+   RECENT MEMBERS
+ */
+function loadRecent() {
+  fetch('/api/users').then(r=>r.json()).then(d => {
+    if (!d.success) throw 0;
+    var list = d.users.slice(0, 6);
+    var c = document.getElementById('recent-list');
+    if (!list.length) { c.innerHTML = '<div class="empty">Aucun membre</div>'; return; }
+    c.innerHTML = list.map(u => {
+      var ini = u.username.charAt(0).toUpperCase();
+      var dt  = u.createdAt ? new Date(u.createdAt).toLocaleDateString('fr') : '';
+      return `<div class="tli">
+        <div class="tl-av ${u.isadmin?'adm':''}">${ini}</div>
+        <div class="tl-inf">
+          <div class="tl-nm">${esc(u.username)} ${u.isadmin?'<span class="bg a">admin</span>':''}</div>
+          <div class="tl-dt">${esc(u.email)}${dt?' · '+dt:''}</div>
+        </div>
+        <div class="tl-cr">${u.coins??0} CR</div>
+      </div>`;
+    }).join('');
+  }).catch(() => { document.getElementById('recent-list').innerHTML = '<div class="empty">Erreur</div>'; });
+}
+
+/* 
+   USERS
+ */
+var _users = [];
+
+function loadUsers() {
+  document.getElementById('ulist').innerHTML = '<div class="spin-wrap" style="display:flex;align-items:center;gap:8px;padding:var(--s4);color:var(--text-3);font-size:.82rem;"><div class="dh-spin dh-spin-sm"><img src="/logo.jpg" alt="" style="width:100%;height:100%;object-fit:cover;"/></div> Chargement…</div>';
+  fetch('/api/users').then(r=>r.json()).then(d => {
+    if (!d.success) throw 0;
+    _users = d.users;
+    renderUsers(_users);
+  }).catch(() => { document.getElementById('ulist').innerHTML = '<div class="empty">Erreur de chargement</div>'; });
+}
+
+function filterUsers() {
+  var q = document.getElementById('usearch').value.toLowerCase();
+  renderUsers(_users.filter(u => u.username.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)));
+}
+
+function renderUsers(list) {
+  document.getElementById('u-cnt').textContent = list.length + ' membre' + (list.length > 1 ? 's' : '');
+  var c = document.getElementById('ulist');
+  if (!list.length) { c.innerHTML = '<div class="empty">Aucun membre trouvé</div>'; return; }
+  c.innerHTML = list.map(u => {
+    var ini = u.username.charAt(0).toUpperCase();
+    var dt  = u.createdAt ? new Date(u.createdAt).toLocaleDateString('fr') : '';
+    return `<div class="urow">
+      <div class="uav ${u.isadmin?'adm':''}">${ini}</div>
+      <div class="uinf">
+        <div class="unm">#${u.id} ${esc(u.username)}
+          ${u.isadmin?'<span class="bg a">admin</span>':''} 
+          ${u.status==='banned'?'<span class="bg b">banni</span>':''}</div>
+        <div class="uem">${esc(u.email)}</div>
+        <div class="udt">${dt?'Inscrit le '+dt:''} · ${u.wa_number?' '+u.wa_number:'Pas de bot lié'}</div>
+      </div>
+      <div class="umeta"><span class="ucr">${u.coins??0} CR</span></div>
+      <div class="uact">
+        <button class="ibtn ed" title="Modifier" onclick="openEdit(${u.id},'${esc(u.username)}',${u.coins??0},'${u.status}')">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+        </button>
+        <button class="ibtn dl" title="Supprimer" onclick="openDelete(${u.id},'${esc(u.username)}')">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="m19 6-.867 12.142A2 2 0 0 1 16.138 20H7.862a2 2 0 0 1-1.995-1.858L5 6"/></svg>
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openEdit(id, name, coins, status) {
+  document.getElementById('mu-id').value = id;
+  document.getElementById('mu-nm').textContent = name;
+  document.getElementById('mu-pw').value = '';
+  document.getElementById('mu-cv').value = coins;
+  document.getElementById('mu-cop').value = 'set';
+  document.getElementById('mu-st').value = status;
+  document.getElementById('mu-err').textContent = '';
+  document.getElementById('m-edit').classList.add('open');
+}
+
+function saveUser() {
+  var id = parseInt(document.getElementById('mu-id').value);
+  var pw = document.getElementById('mu-pw').value.trim();
+  var op = document.getElementById('mu-cop').value;
+  var cv = parseInt(document.getElementById('mu-cv').value);
+  var st = document.getElementById('mu-st').value;
+  var err = document.getElementById('mu-err');
+  err.textContent = '';
+
+  var tasks = [];
+  if (!isNaN(cv)) tasks.push(fetch('/api/user/'+id+'/credits',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({amount:cv,operation:op})}).then(r=>r.json()));
+  tasks.push(fetch('/api/user/'+id+'/status',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:st})}).then(r=>r.json()));
+  if (pw) tasks.push(fetch('/api/user/'+id+'/password',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pw})}).then(r=>r.json()));
+
+  Promise.all(tasks).then(res => {
+    var fail = res.find(r => !r.success);
+    if (fail) { err.textContent = fail.message||'Erreur'; return; }
+    cm('m-edit'); toast(' Membre mis à jour', 'ok'); loadUsers(); loadStats(); loadRecent();
+  }).catch(() => { err.textContent = 'Erreur serveur'; });
+}
+
+function openDelete(id, name) {
+  document.getElementById('md-id').value = id;
+  document.getElementById('md-nm').textContent = name;
+  document.getElementById('m-del').classList.add('open');
+}
+
+function doDelete() {
+  fetch('/api/user/'+document.getElementById('md-id').value, {method:'DELETE'})
+    .then(r=>r.json()).then(d => {
+      cm('m-del');
+      if (d.success) { toast(' Membre supprimé', 'ok'); loadUsers(); loadStats(); loadRecent(); }
+      else toast(d.message||'Erreur', 'err');
+    }).catch(() => toast('Erreur', 'err'));
+}
+
+function openAddUser() {
+  ['au-un','au-em','au-pw'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('au-cr').value = '50';
+  document.getElementById('au-err').textContent = '';
+  document.getElementById('m-add').classList.add('open');
+}
+
+function addUser() {
+  var un = document.getElementById('au-un').value.trim();
+  var em = document.getElementById('au-em').value.trim();
+  var pw = document.getElementById('au-pw').value;
+  var cr = parseInt(document.getElementById('au-cr').value) || 50;
+  var err = document.getElementById('au-err');
+  if (!un||!em||!pw) { err.textContent = 'Tous les champs sont requis.'; return; }
+  err.textContent = '';
+
+  fetch('/api/register', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:un,email:em,password:pw})})
+    .then(r=>r.json()).then(d => {
+      if (d.success) {
+        cm('m-add'); toast(' Membre créé', 'ok'); loadUsers(); loadStats(); loadRecent();
+      } else { err.textContent = d.message||'Erreur'; }
+    }).catch(() => { err.textContent = 'Erreur serveur'; });
+}
+
+/* 
+   PANELS
+ */
+function loadPanels() {
+  document.getElementById('plist').innerHTML = '<div class="spin-wrap" style="display:flex;align-items:center;gap:8px;padding:var(--s4);color:var(--text-3);font-size:.82rem;"><div class="dh-spin dh-spin-sm"><img src="/logo.jpg" alt="" style="width:100%;height:100%;object-fit:cover;"/></div> Chargement…</div>';
+  fetch('/api/panels').then(r=>r.json()).then(d => {
+    if (!d.success) throw 0;
+    document.getElementById('p-cnt').textContent = d.panels.length + ' panel' + (d.panels.length>1?'s':'');
+    renderPanels(d.panels);
+  }).catch(() => { document.getElementById('plist').innerHTML = '<div class="empty">Erreur</div>'; });
+}
+
+function renderPanels(list) {
+  var c = document.getElementById('plist');
+  if (!list.length) { c.innerHTML = '<div class="empty">Aucun panel</div>'; return; }
+  c.innerHTML = list.map(p => {
+    var exp = new Date(p.expiresAt) < new Date();
+    var dt  = new Date(p.expiresAt).toLocaleDateString('fr');
+    return `<div class="prow">
+      <div class="pinf">
+        <div class="pnm">${esc(p.name)}</div>
+        <div class="pmeta">${esc(p.username)} · ${esc(p.panelUrl||'—')}</div>
+        <div class="pmeta" style="color:${exp?'var(--red)':' var(--green)'}">${exp?' Expiré':' Actif'} · expire ${dt}</div>
+      </div>
+      <button class="ibtn dl" onclick="delPanel('${p.id}')">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="m19 6-.867 12.142A2 2 0 0 1 16.138 20H7.862a2 2 0 0 1-1.995-1.858L5 6"/></svg>
+      </button>
+    </div>`;
+  }).join('');
+}
+
+function delPanel(id) {
+  if (!confirm('Supprimer ce panel ?')) return;
+  fetch('/api/panels/'+id,{method:'DELETE'}).then(r=>r.json()).then(d => {
+    if (d.success) { toast(' Panel supprimé', 'ok'); loadPanels(); loadStats(); }
+    else toast('Erreur', 'err');
+  });
+}
+
+function openCreatePanel() {
+  ['cp-id','cp-nm','cp-url','cp-us','cp-pw'].forEach(id => document.getElementById(id).value='');
+  document.getElementById('cp-err').textContent='';
+  document.getElementById('m-panel').classList.add('open');
+}
+
+function doCreatePanel() {
+  var uid  = document.getElementById('cp-id').value.trim();
+  var name = document.getElementById('cp-nm').value.trim();
+  var url  = document.getElementById('cp-url').value.trim();
+  var usr  = document.getElementById('cp-us').value.trim();
+  var pw   = document.getElementById('cp-pw').value.trim();
+  var err  = document.getElementById('cp-err');
+  if (!uid||!name) { err.textContent='ID et nom requis.'; return; }
+  err.textContent='';
+  fetch('/api/panels/create-admin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId:uid,panelName:name,panelUrl:url,panelUser:usr,panelPassword:pw})})
+    .then(r=>r.json()).then(d => {
+      if (d.success) { cm('m-panel'); toast(' Panel créé', 'ok'); loadPanels(); loadStats(); }
+      else err.textContent = d.message||'Erreur';
+    }).catch(() => { err.textContent='Erreur serveur'; });
+}
+
+/* 
+   TOOLS
+ */
+function cleanSessions() {
+  fetch('/admin/clean-sessions',{method:'POST'}).then(r=>r.json())
+    .then(d => toast(' ' + (d.success||d.error||'Nettoyage ok'), 'ok')).catch(() => toast('Erreur', 'err'));
+}
+
+function doBulk() {
+  var op  = document.getElementById('bop').value;
+  var amt = parseInt(document.getElementById('bval').value);
+  var tgt = document.getElementById('btgt').value;
+  if (isNaN(amt)||amt<0) { toast('Montant invalide', 'err'); return; }
+
+  var doIt = (users) => {
+    var list = tgt==='active' ? users.filter(u=>u.status==='active') : users;
+    if (!list.length) { toast('Aucun membre', 'err'); return; }
+    Promise.all(list.map(u => fetch('/api/user/'+u.id+'/credits',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({amount:amt,operation:op})})))
+      .then(() => { toast(' '+list.length+' membre(s) mis à jour', 'ok'); loadStats(); loadUsers(); })
+      .catch(() => toast('Erreur crédits', 'err'));
+  };
+
+  if (_users.length) { doIt(_users); }
+  else { fetch('/api/users').then(r=>r.json()).then(d=>{ if(d.success){_users=d.users;doIt(_users);} }); }
+}
+
+function banInactive() {
+  if (!confirm('Bannir tous les membres avec 0 crédits (hors admins) ?')) return;
+  var doIt = (users) => {
+    var list = users.filter(u => !u.isadmin && (u.coins||0) === 0 && u.status !== 'banned');
+    if (!list.length) { toast('Aucun membre concerné', 'err'); return; }
+    Promise.all(list.map(u => fetch('/api/user/'+u.id+'/status',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:'banned'})})))
+      .then(() => { toast(' '+list.length+' membre(s) bannis', 'ok'); loadStats(); loadUsers(); })
+      .catch(() => toast('Erreur', 'err'));
+  };
+  if (_users.length) { doIt(_users); }
+  else { fetch('/api/users').then(r=>r.json()).then(d=>{ if(d.success){_users=d.users;doIt(_users);} }); }
+}
+
+/* 
+   SERVICES
+*/
+var _serviceCatalog = [];
+
+function loadServices() {
+  fetch('/api/admin/services').then(r=>r.json()).then(d => {
+    if (!d.success) throw 0;
+    _serviceCatalog = d.services;
+    renderServiceGroups(d.services);
+    renderServiceHistory(d.history);
+  }).catch(() => {
+    document.getElementById('svc-groups').innerHTML = '<div class="empty">Erreur de chargement</div>';
+  });
+}
+
+function renderServiceGroups(services) {
+  var groups = {};
+  services.forEach(s => { (groups[s.group] = groups[s.group] || []).push(s); });
+
+  var html = Object.keys(groups).map(g => {
+    var items = groups[g].map(s => `
+      <div class="dcard" style="display:flex;align-items:center;justify-content:space-between;gap:var(--s3);">
+        <div style="flex:1;min-width:0;">
+          <div class="dt">${esc(s.label)} ${s.available ? '' : '<span class="bg" style="background:rgba(239,68,68,.15);color:var(--red);">indisponible</span>'}</div>
+          <div class="dd" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(s.message)}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:var(--s2);flex-shrink:0;">
+          <button class="btn btn-ghost btn-sm" onclick="openServiceMsg('${s.id}','${esc(s.label).replace(/'/g,"\\'")}','${esc(s.message).replace(/'/g,"\\'")}')" title="Modifier le message"> Message</button>
+          <label class="svc-switch">
+            <input type="checkbox" ${s.available ? 'checked' : ''} onchange="toggleService('${s.id}', this.checked)"/>
+            <span class="svc-switch-slider"></span>
+          </label>
+        </div>
+      </div>`).join('');
+    return `<div class="slbl" style="margin-top:var(--s3);">${esc(g)}</div>${items}`;
+  }).join('');
+
+  document.getElementById('svc-groups').innerHTML = html || '<div class="empty">Aucun service</div>';
+}
+
+function toggleService(id, available) {
+  fetch('/api/admin/services/' + id, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ available })
+  }).then(r => r.json()).then(d => {
+    if (!d.success) throw 0;
+    toast(available ? 'Service activé' : 'Service désactivé', available ? 'ok' : 'err');
+    loadServices();
+  }).catch(() => { toast('Erreur', 'err'); loadServices(); });
+}
+
+function openServiceMsg(id, label, message) {
+  document.getElementById('svc-msg-id').value = id;
+  document.getElementById('svc-msg-name').textContent = label;
+  document.getElementById('svc-msg-input').value = message;
+  document.getElementById('m-svc-msg').classList.add('open');
+}
+
+function saveServiceMessage() {
+  var id  = document.getElementById('svc-msg-id').value;
+  var msg = document.getElementById('svc-msg-input').value.trim();
+  if (!msg) { toast('Message requis', 'err'); return; }
+  var current = _serviceCatalog.find(s => s.id === id);
+  fetch('/api/admin/services/' + id, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ available: current ? current.available : true, message: msg })
+  }).then(r => r.json()).then(d => {
+    if (!d.success) throw 0;
+    toast('Message mis à jour', 'ok');
+    cm('m-svc-msg');
+    loadServices();
+  }).catch(() => toast('Erreur', 'err'));
+}
+
+function renderServiceHistory(history) {
+  document.getElementById('svc-hist-cnt').textContent = history.length + ' changement(s)';
+  if (!history.length) {
+    document.getElementById('svc-history').innerHTML = '<div class="empty">Aucun changement enregistré</div>';
+    return;
+  }
+  var html = history.slice(0, 100).map(h => {
+    var dt = new Date(h.date).toLocaleString('fr-FR');
+    var arrow = h.after
+      ? '<span style="color:var(--green);">activé</span>'
+      : '<span style="color:var(--red);">désactivé</span>';
+    return `<div class="tli">
+      <div class="tl-av">${esc((h.adminUsername||'A').charAt(0).toUpperCase())}</div>
+      <div class="tl-inf">
+        <div class="tl-nm">${esc(h.serviceLabel)} — ${arrow}</div>
+        <div class="tl-dt">par ${esc(h.adminUsername)} · ${dt}</div>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('svc-history').innerHTML = html;
+}
+
+/*  Logout  */
+function doLogout() {
+  fetch('/logout').catch(()=>{});
+  localStorage.removeItem('krinyx_session');
+  window.location.href = '/login';
+}
+
+/*  Expose  */
+window.openEdit = openEdit; window.openDelete = openDelete; window.delPanel = delPanel;
+
+/*  Init  */
+loadStats(); loadRecent();
+
+// Pending ticket badge
+fetch('/api/support/tickets').then(r=>r.json()).then(d=>{
+  if(d.success){
+    var pending = d.tickets.filter(t=>t.status==='pending').length;
+    var badge = document.getElementById('ticket-badge');
+    if(badge && pending > 0){ badge.textContent = pending; badge.style.display='inline'; }
+  }
+}).catch(()=>{});
+</script>
+
+<!-- TAB ANNOUNCEMENTS -->
+<div class="tab-panel" id="panel-announcements" style="display:none;">
+  <div style="background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-lg);padding:var(--s5);margin-bottom:var(--s4);">
+    <div style="font-size:.95rem;font-weight:700;margin-bottom:var(--s4);color:var(--text);">Envoyer une annonce à tous les utilisateurs</div>
+    <div style="display:flex;flex-direction:column;gap:var(--s3);">
+      <div>
+        <label style="font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-3);display:block;margin-bottom:6px;">Type</label>
+        <select id="ann-type" style="width:100%;background:var(--bg-2);border:1px solid var(--border-2);border-radius:var(--r-md);padding:.55rem var(--s3);font-size:.85rem;color:var(--text);font-family:var(--font-body);">
+          <option value="announcement">Annonce</option>
+          <option value="info">Information</option>
+          <option value="warning">Alerte</option>
+          <option value="success">Succès</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-3);display:block;margin-bottom:6px;">Titre</label>
+        <input id="ann-title" type="text" placeholder="Titre de l'annonce" style="width:100%;background:var(--bg-2);border:1px solid var(--border-2);border-radius:var(--r-md);padding:.55rem var(--s3);font-size:.85rem;color:var(--text);font-family:var(--font-body);"/>
+      </div>
+      <div>
+        <label style="font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-3);display:block;margin-bottom:6px;">Message</label>
+        <textarea id="ann-body" rows="4" placeholder="Contenu de l'annonce..." style="width:100%;background:var(--bg-2);border:1px solid var(--border-2);border-radius:var(--r-md);padding:.55rem var(--s3);font-size:.85rem;color:var(--text);font-family:var(--font-body);resize:vertical;"></textarea>
+      </div>
+      <button class="btn btn-primary" id="btn-announce" style="align-self:flex-start;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>
+        Envoyer à tous
+      </button>
+      <div id="ann-result" style="font-size:.8rem;display:none;"></div>
+    </div>
+  </div>
+
+  <div style="background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-lg);padding:var(--s5);">
+    <div style="font-size:.95rem;font-weight:700;margin-bottom:var(--s4);color:var(--text);">Envoyer à un utilisateur spécifique</div>
+    <div style="display:flex;flex-direction:column;gap:var(--s3);">
+      <div>
+        <label style="font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-3);display:block;margin-bottom:6px;">ID Utilisateur</label>
+        <input id="user-notif-id" type="number" placeholder="ID de l'utilisateur" style="width:100%;background:var(--bg-2);border:1px solid var(--border-2);border-radius:var(--r-md);padding:.55rem var(--s3);font-size:.85rem;color:var(--text);font-family:var(--font-body);"/>
+      </div>
+      <div>
+        <label style="font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-3);display:block;margin-bottom:6px;">Type</label>
+        <select id="user-notif-type" style="width:100%;background:var(--bg-2);border:1px solid var(--border-2);border-radius:var(--r-md);padding:.55rem var(--s3);font-size:.85rem;color:var(--text);font-family:var(--font-body);">
+          <option value="info">Information</option>
+          <option value="warning">Alerte</option>
+          <option value="success">Succès</option>
+          <option value="announcement">Annonce</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-3);display:block;margin-bottom:6px;">Titre</label>
+        <input id="user-notif-title" type="text" placeholder="Titre" style="width:100%;background:var(--bg-2);border:1px solid var(--border-2);border-radius:var(--r-md);padding:.55rem var(--s3);font-size:.85rem;color:var(--text);font-family:var(--font-body);"/>
+      </div>
+      <div>
+        <label style="font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-3);display:block;margin-bottom:6px;">Message</label>
+        <textarea id="user-notif-body" rows="3" placeholder="Message..." style="width:100%;background:var(--bg-2);border:1px solid var(--border-2);border-radius:var(--r-md);padding:.55rem var(--s3);font-size:.85rem;color:var(--text);font-family:var(--font-body);resize:vertical;"></textarea>
+      </div>
+      <button class="btn btn-secondary" id="btn-user-notif" style="align-self:flex-start;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        Envoyer à cet utilisateur
+      </button>
+      <div id="user-notif-result" style="font-size:.8rem;display:none;"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Annonces admin
+(function() {
+  function addAnnounceHandlers() {
+    const btnAnn = document.getElementById('btn-announce');
+    if (!btnAnn) return;
+
+    btnAnn.addEventListener('click', async () => {
+      const type  = document.getElementById('ann-type').value;
+      const title = document.getElementById('ann-title').value.trim();
+      const body  = document.getElementById('ann-body').value.trim();
+      const res   = document.getElementById('ann-result');
+      if (!title || !body) { res.textContent = 'Titre et message requis.'; res.style.color='var(--red)'; res.style.display='block'; return; }
+      const r = await fetch('/api/inbox/announce', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ type, title, body })
+      }).then(r => r.json()).catch(() => ({success:false}));
+      if (r.success) {
+        res.textContent = 'Annonce envoyée a tous les utilisateurs.';
+        res.style.color = 'var(--green)';
+        document.getElementById('ann-title').value = '';
+        document.getElementById('ann-body').value = '';
+      } else {
+        res.textContent = r.message || 'Erreur.';
+        res.style.color = 'var(--red)';
+      }
+      res.style.display = 'block';
+      setTimeout(() => res.style.display = 'none', 4000);
+    });
+
+    const btnUser = document.getElementById('btn-user-notif');
+    btnUser.addEventListener('click', async () => {
+      const userId = document.getElementById('user-notif-id').value.trim();
+      const type   = document.getElementById('user-notif-type').value;
+      const title  = document.getElementById('user-notif-title').value.trim();
+      const body   = document.getElementById('user-notif-body').value.trim();
+      const res    = document.getElementById('user-notif-result');
+      if (!userId || !title || !body) { res.textContent = 'Tous les champs sont requis.'; res.style.color='var(--red)'; res.style.display='block'; return; }
+      const r = await fetch('/api/inbox/send-user', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ userId, type, title, body })
+      }).then(r => r.json()).catch(() => ({success:false}));
+      if (r.success) {
+        res.textContent = 'Message envoye.';
+        res.style.color = 'var(--green)';
+        document.getElementById('user-notif-title').value = '';
+        document.getElementById('user-notif-body').value = '';
+        document.getElementById('user-notif-id').value = '';
+      } else {
+        res.textContent = r.message || 'Erreur.';
+        res.style.color = 'var(--red)';
+      }
+      res.style.display = 'block';
+      setTimeout(() => res.style.display = 'none', 4000);
+    });
+  }
+  // Attendre que le DOM soit prêt
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', addAnnounceHandlers);
+  } else {
+    addAnnounceHandlers();
+  }
+})();
+</script>
+
+</body>
+</html>

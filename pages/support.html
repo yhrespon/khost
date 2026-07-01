@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <title>Krinyx | Support</title>
+  <!-- Krinyx: apply theme+lang instantly to avoid flash -->
+  <script>(function(){var t=localStorage.getItem("krinyx_theme")||"dark";document.documentElement.setAttribute("data-theme",t);var l=localStorage.getItem("krinyx_lang")||"fr";document.documentElement.setAttribute("lang",l);})()</script>
+  <link rel="stylesheet" href="/theme_/theme.css"/>
+  <style>
+    html,body{height:100%;overflow:hidden;background:var(--bg);transition:background var(--t-mid);}
+    .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);z-index:500;opacity:0;transition:all .25s var(--ease);background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-full);padding:.5rem 1.25rem;font-size:.85rem;font-weight:500;white-space:nowrap;box-shadow:var(--shadow-lg);pointer-events:none;}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+    @media(min-width:700px){.toast{bottom:20px;}}
+    .tabs-row{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:var(--s4);}
+    .tab-btn{flex:1;padding:var(--s3);font-size:.8rem;font-weight:600;color:var(--text-3);cursor:pointer;background:none;border:none;border-bottom:2px solid transparent;transition:all var(--t-fast);text-align:center;}
+    .tab-btn.active{color:var(--text);border-bottom-color:var(--text);}
+    .tab-btn:hover:not(.active){color:var(--text-2);}
+    .view{display:none;flex-direction:column;gap:var(--s4);}
+    .view.active{display:flex;}
+  </style>
+</head>
+<body>
+<script src="/js/ui.js"></script>
+<script src="/js/services-guard.js"></script>
+<div class="toast" id="toast"></div>
+
+<main class="main-content" id="main" style="top:48px;padding-bottom:80px;">
+
+  <!-- Header -->
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:var(--s5) var(--s4);text-align:center;">
+    <div style="font-size:2rem;margin-bottom:var(--s2);"></div>
+    <div style="font-size:1.15rem;font-weight:800;color:var(--text);margin-bottom:4px;" data-i18n="support.title">Contacter le support</div>
+    <div style="font-size:.82rem;color:var(--text-3);">Notre équipe répond sous 24h. Décrivez votre problème clairement.</div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs-row">
+    <button class="tab-btn active" data-tab="new" onclick="switchTab('new')">
+       Nouvelle demande
+    </button>
+    <button class="tab-btn" data-tab="inbox" onclick="switchTab('inbox')">
+       <span data-i18n="support.inbox">Mes demandes</span>
+    </button>
+  </div>
+
+  <!-- NEW TICKET -->
+  <div class="view active" id="view-new">
+    <div class="panel-box">
+      <div class="panel-head"><span class="panel-title">Nouveau ticket</span></div>
+      <div class="panel-body" style="display:flex;flex-direction:column;gap:var(--s4);">
+        <div class="field-group">
+          <label class="field-label" style="font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--text-3);margin-bottom:var(--s2);display:block;">Sujet du problème</label>
+          <input id="ticket-subject" class="input" type="text" placeholder="Ex: Mon bot ne répond plus" maxlength="150" style="width:100%;padding:.75rem 1rem;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r-md);color:var(--text);font-size:.875rem;outline:none;transition:border-color var(--t-fast);"/>
+        </div>
+        <div class="field-group">
+          <label class="field-label" style="font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--text-3);margin-bottom:var(--s2);display:block;" data-i18n="support.problem">Décrivez votre problème</label>
+          <textarea id="ticket-message" placeholder="Expliquez votre problème en détail : quand est-ce arrivé, ce que vous avez essayé, etc." maxlength="2000" rows="6" style="width:100%;padding:.75rem 1rem;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r-md);color:var(--text);font-size:.875rem;outline:none;resize:vertical;font-family:var(--font-body);transition:border-color var(--t-fast);"></textarea>
+          <div style="text-align:right;font-size:.68rem;color:var(--text-3);margin-top:4px;" id="char-count">0 / 2000</div>
+        </div>
+
+        <!-- User info preview -->
+        <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r-md);padding:var(--s3) var(--s4);">
+          <div style="font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-3);margin-bottom:var(--s2);">Envoyé avec vos informations</div>
+          <div style="display:flex;gap:var(--s4);flex-wrap:wrap;">
+            <div style="font-size:.8rem;color:var(--text-2);"> <span id="info-user">—</span></div>
+            <div style="font-size:.8rem;color:var(--text-2);"> <span id="info-email">—</span></div>
+            <div style="font-size:.8rem;color:var(--text-2);"> <span id="info-id">—</span></div>
+          </div>
+        </div>
+
+        <div id="ticket-err" style="display:none;font-size:.82rem;color:var(--red);padding:var(--s3) var(--s4);background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:var(--r-md);"></div>
+
+        <button id="btn-send" class="btn btn-primary btn-full" onclick="sendTicket()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" x2="11" y1="2" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          <span data-i18n="support.send">Envoyer au support</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- INBOX -->
+  <div class="view" id="view-inbox">
+    <div class="panel-box">
+      <div class="panel-head">
+        <span class="panel-title">Mes demandes</span>
+        <button class="btn btn-ghost btn-sm" onclick="loadTickets()">Actualiser</button>
+      </div>
+      <div class="panel-body" id="inbox-list">
+        <div class="loading-state">Chargement…</div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <div class="bn-item" onclick="location.href='/dashboard'">
+    <span class="bn-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></span><span>Accueil</span>
+  </div>
+  <div class="bn-item active">
+    <span class="bn-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span><span>Support</span>
+  </div>
+</nav>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  injectTopbar('/dashboard');
+  ThemeManager.init();
+  i18n.init();
+  initScrollNav();
+
+  var user = null;
+  try { user = JSON.parse(localStorage.getItem('krinyx_session')); } catch(e){}
+  if (!user) { window.location.href = './login.html'; return; }
+
+  document.getElementById('info-user').textContent  = user.username || '—';
+  document.getElementById('info-email').textContent = user.email    || '—';
+  document.getElementById('info-id').textContent    = '#' + (user.id || '?');
+
+  var msg = document.getElementById('ticket-message');
+  msg.addEventListener('input', () => {
+    document.getElementById('char-count').textContent = msg.value.length + ' / 2000';
+  });
+
+  loadTickets();
+});
+
+function toast(m) {
+  var t = document.getElementById('toast');
+  t.textContent = m; t.className = 'toast show';
+  clearTimeout(t._t); t._t = setTimeout(() => t.className = 'toast', 3000);
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.getElementById('view-new').classList.toggle('active', tab === 'new');
+  document.getElementById('view-inbox').classList.toggle('active', tab === 'inbox');
+  if (tab === 'inbox') loadTickets();
+}
+
+function sendTicket() {
+  var subject = document.getElementById('ticket-subject').value.trim();
+  var message = document.getElementById('ticket-message').value.trim();
+  var errEl   = document.getElementById('ticket-err');
+  var btnSend = document.getElementById('btn-send');
+
+  errEl.style.display = 'none';
+  if (!subject) { errEl.textContent = 'Le sujet est requis.'; errEl.style.display = 'block'; return; }
+  if (!message || message.length < 20) { errEl.textContent = 'Message trop court (20 caractères minimum).'; errEl.style.display = 'block'; return; }
+
+  btnSend.disabled = true;
+  btnSend.innerHTML = '<span>Envoi…</span>';
+
+  fetch('/api/support/ticket', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ subject, message })
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (d.success) {
+      toast(' Votre demande a été envoyée !');
+      document.getElementById('ticket-subject').value = '';
+      document.getElementById('ticket-message').value = '';
+      document.getElementById('char-count').textContent = '0 / 2000';
+      setTimeout(() => switchTab('inbox'), 800);
+    } else {
+      errEl.textContent = d.message || 'Erreur envoi.';
+      errEl.style.display = 'block';
+    }
+  })
+  .catch(() => { errEl.textContent = 'Erreur réseau.'; errEl.style.display = 'block'; })
+  .finally(() => {
+    btnSend.disabled = false;
+    btnSend.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" x2="11" y1="2" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" x2="11" y1="2" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Envoyer au support';
+  });
+}
+
+function loadTickets() {
+  var list = document.getElementById('inbox-list');
+  list.innerHTML = '<div class="loading-state">Chargement…</div>';
+
+  fetch('/api/support/my-tickets')
+  .then(r => r.json())
+  .then(d => {
+    if (!d.success || !d.tickets.length) {
+      list.innerHTML = '<div class="empty-state"><div class="empty-icon"></div><div class="empty-text">Aucune demande envoyée</div></div>';
+      return;
+    }
+    var statusMap = {
+      pending:  ['ts-pending',  ' En attente'],
+      waiting:  ['ts-waiting',  ' Traitement'],
+      resolved: ['ts-resolved', ' Résolu'],
+      rejected: ['ts-rejected', ' Non recevable']
+    };
+    list.innerHTML = d.tickets.map(t => {
+      var [cls, lbl] = statusMap[t.status] || ['ts-pending',' En attente'];
+      var date = new Date(t.createdAt).toLocaleString();
+      var reply = t.adminReply ? `<div class="ticket-response"><strong>Réponse de ${t.repliedBy || 'Admin'} :</strong><br>${t.adminReply}</div>` : '';
+      return `<div class="ticket-item">
+        <div class="ticket-top">
+          <span class="ticket-title">${t.subject}</span>
+          <span class="ticket-date">${date}</span>
+        </div>
+        <div class="ticket-body">${t.message}</div>
+        <span class="ticket-status ${cls}">${lbl}</span>
+        ${reply}
+      </div>`;
+    }).join('');
+  })
+  .catch(() => { list.innerHTML = '<div class="empty-state"><div class="empty-text">Erreur de chargement</div></div>'; });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <title>Krinyx | Admin Support</title>
+  <!-- Krinyx: apply theme+lang instantly to avoid flash -->
+  <script>(function(){var t=localStorage.getItem("krinyx_theme")||"dark";document.documentElement.setAttribute("data-theme",t);var l=localStorage.getItem("krinyx_lang")||"fr";document.documentElement.setAttribute("lang",l);})()</script>
+  <link rel="stylesheet" href="/theme_/theme.css"/>
+  <style>
+    html,body{height:100%;overflow:hidden;}
+    .wrap{display:flex;flex-direction:column;height:100%;max-width:900px;margin:0 auto;}
+    .hdr{display:flex;align-items:center;justify-content:space-between;padding:var(--s3) var(--s4);border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface);}
+    .hdr-title{font-size:.9rem;font-weight:700;}
+    .body-scroll{flex:1;overflow-y:auto;padding:var(--s4);}
+    .filter-bar{display:flex;gap:var(--s2);margin-bottom:var(--s4);flex-wrap:wrap;}
+    .filter-btn{padding:.35rem .85rem;border-radius:var(--r-full);font-size:.72rem;font-weight:600;cursor:pointer;border:1px solid var(--border-2);background:var(--bg-2);color:var(--text-3);transition:all var(--t-fast);}
+    .filter-btn.active,.filter-btn:hover{background:var(--bg-3);color:var(--text);border-color:var(--text);}
+    .reply-area{width:100%;padding:.65rem .9rem;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r-md);color:var(--text);font-size:.82rem;resize:vertical;font-family:var(--font-body);outline:none;margin-top:var(--s2);}
+    .reply-area:focus{border-color:var(--border-focus);}
+    .badge-admin{font-size:.58rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:2px 8px;border-radius:var(--r-full);background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.25);}
+    .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(20px);z-index:500;opacity:0;transition:all .25s;background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-full);padding:.5rem 1.25rem;font-size:.85rem;font-weight:500;white-space:nowrap;box-shadow:var(--shadow-lg);pointer-events:none;}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+    .count-badge{background:var(--bg-3);color:var(--text-3);font-size:.65rem;font-family:var(--font-mono);padding:1px 7px;border-radius:var(--r-full);margin-left:6px;}
+  </style>
+</head>
+<body>
+<script src="/js/ui.js"></script>
+<div class="toast" id="toast"></div>
+
+<div class="wrap">
+  <!-- Header -->
+  <div class="hdr">
+    <div style="display:flex;align-items:center;gap:var(--s3);">
+      <button onclick="window.location.href='/admindashboard'" class="btn btn-ghost btn-sm" style="gap:4px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg> Admin
+      </button>
+      <div>
+        <div class="hdr-title"> Demandes Support <span class="count-badge" id="total-count">0</span></div>
+        <div style="font-size:.68rem;color:var(--text-3);">Gestion des tickets utilisateurs</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:var(--s2);">
+      <span class="badge-admin">ADMIN</span>
+      <button class="btn btn-ghost btn-sm" onclick="loadTickets()"></button>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div style="padding:var(--s3) var(--s4);border-bottom:1px solid var(--border);background:var(--bg-2);">
+    <div class="filter-bar" style="margin:0;">
+      <button class="filter-btn active" data-filter="all"     onclick="setFilter('all')">Tous</button>
+      <button class="filter-btn"         data-filter="pending" onclick="setFilter('pending')"> En attente</button>
+      <button class="filter-btn"         data-filter="waiting" onclick="setFilter('waiting')"> Traitement</button>
+      <button class="filter-btn"         data-filter="resolved" onclick="setFilter('resolved')"> Résolus</button>
+      <button class="filter-btn"         data-filter="rejected" onclick="setFilter('rejected')"> Rejetés</button>
+    </div>
+  </div>
+
+  <!-- Tickets list -->
+  <div class="body-scroll" id="tickets-list">
+    <div class="loading-state" style="display:flex;align-items:center;gap:8px;padding:var(--s4);color:var(--text-3);"><div class="dh-spin dh-spin-sm"><img src="/logo.jpg" alt="" style="width:100%;height:100%;object-fit:cover;"/></div> Chargement des tickets…</div>
+  </div>
+</div>
+
+<script>
+var allTickets = [];
+var currentFilter = 'all';
+
+document.addEventListener('DOMContentLoaded', () => {
+  ThemeManager.init();
+  i18n.init();
+  loadTickets();
+});
+
+function toast(m) {
+  var t = document.getElementById('toast');
+  t.textContent = m; t.className = 'toast show';
+  clearTimeout(t._t); t._t = setTimeout(() => t.className = 'toast', 3000);
+}
+
+function setFilter(f) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === f));
+  renderTickets();
+}
+
+function loadTickets() {
+  fetch('/api/support/tickets')
+  .then(r => r.json())
+  .then(d => {
+    if (d.success) {
+      allTickets = d.tickets;
+      document.getElementById('total-count').textContent = allTickets.length;
+      renderTickets();
+    }
+  })
+  .catch(() => {
+    document.getElementById('tickets-list').innerHTML = '<div class="empty-state"><div class="empty-text">Erreur de chargement</div></div>';
+  });
+}
+
+function renderTickets() {
+  var list = document.getElementById('tickets-list');
+  var filtered = currentFilter === 'all' ? allTickets : allTickets.filter(t => t.status === currentFilter);
+
+  if (!filtered.length) {
+    list.innerHTML = '<div class="empty-state"><div class="empty-icon"></div><div class="empty-text">Aucun ticket dans cette catégorie</div></div>';
+    return;
+  }
+
+  var statusMap = {
+    pending:  ['ts-pending',  ' En attente'],
+    waiting:  ['ts-waiting',  ' Traitement'],
+    resolved: ['ts-resolved', ' Résolu'],
+    rejected: ['ts-rejected', ' Non recevable']
+  };
+
+  list.innerHTML = filtered.map(t => {
+    var [cls, lbl] = statusMap[t.status] || ['ts-pending',' En attente'];
+    var date    = new Date(t.createdAt).toLocaleString();
+    var updated = new Date(t.updatedAt).toLocaleString();
+    var reply   = t.adminReply ? `<div class="ticket-response" style="margin-top:var(--s2);"><strong>Réponse (${t.repliedBy || 'Admin'}) :</strong><br>${t.adminReply}</div>` : '';
+
+    return `<div class="admin-ticket" id="ticket-${t.id}">
+      <div class="at-top">
+        <div>
+          <div style="font-size:.9rem;font-weight:700;color:var(--text);margin-bottom:3px;">${escHtml(t.subject)}</div>
+          <div class="at-user"> ${escHtml(t.username)} ·  ${escHtml(t.email)} ·  #${t.userId}</div>
+          <div class="at-user" style="margin-top:2px;"> ${date}</div>
+        </div>
+        <span class="ticket-status ${cls}">${lbl}</span>
+      </div>
+      <div class="at-msg">${escHtml(t.message)}</div>
+      ${reply}
+      <textarea class="reply-area" id="reply-${t.id}" placeholder="Tapez votre réponse…" rows="3">${t.adminReply || ''}</textarea>
+      <div class="at-actions" style="margin-top:var(--s2);">
+        <button class="at-btn at-btn-ok"   onclick="replyTicket(${t.id},'resolved')"> Résolu</button>
+        <button class="at-btn at-btn-wait" onclick="replyTicket(${t.id},'waiting')"> En traitement</button>
+        <button class="at-btn at-btn-wait" onclick="replyTicket(${t.id},'pending')" style="background:rgba(249,115,22,.1);color:var(--orange);border-color:rgba(249,115,22,.3);"> En attente</button>
+        <button class="at-btn at-btn-rej"  onclick="replyTicket(${t.id},'rejected')"> Non recevable</button>
+      </div>
+      <div style="font-size:.65rem;color:var(--text-3);margin-top:var(--s2);font-family:var(--font-mono);">Mis à jour : ${updated}</div>
+    </div>`;
+  }).join('');
+}
+
+function escHtml(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function replyTicket(id, status) {
+  var replyEl = document.getElementById('reply-' + id);
+  var reply   = replyEl ? replyEl.value.trim() : '';
+
+  fetch('/api/support/ticket/' + id + '/reply', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status, reply })
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (d.success) {
+      toast(' Ticket mis à jour — ' + status);
+      loadTickets();
+    } else {
+      toast(' Erreur : ' + (d.message || 'inconnue'));
+    }
+  })
+  .catch(() => toast(' Erreur réseau'));
+}
+</script>
+</body>
+</html>

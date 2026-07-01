@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <title>Krinyx | Déployer HADES XMD</title>
+  <!-- Krinyx: apply theme+lang instantly to avoid flash -->
+  <script>(function(){var t=localStorage.getItem("krinyx_theme")||"dark";document.documentElement.setAttribute("data-theme",t);var l=localStorage.getItem("krinyx_lang")||"fr";document.documentElement.setAttribute("lang",l);})()</script>
+  <link rel="stylesheet" href="/theme_/theme.css"/>
+  <style>
+    html, body { height: 100%; overflow: hidden; background: var(--bg); transition: background var(--t-mid); }
+
+    .toast {
+      position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px);
+      z-index: 500; opacity: 0; transition: all 0.25s var(--ease);
+      background: var(--surface); border: 1px solid var(--border-2);
+      border-radius: var(--r-full); padding: 0.5rem 1.25rem;
+      font-size: 0.85rem; font-weight: 500; white-space: nowrap;
+      box-shadow: var(--shadow-lg); pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    @media (min-width: 700px) { .toast { bottom: 20px; } }
+
+    /* Tabs */
+    .tabs {
+      display: flex; gap: var(--s2);
+      background: var(--bg-2); border: 1px solid var(--border);
+      border-radius: var(--r-lg); padding: var(--s1);
+      margin-bottom: var(--s4);
+    }
+    .tab {
+      flex: 1; padding: var(--s2) var(--s3); border-radius: var(--r-md);
+      font-size: 0.82rem; font-weight: 600; text-align: center;
+      cursor: pointer; color: var(--text-3); transition: all var(--t-fast);
+      border: 1px solid transparent;
+    }
+    .tab.active {
+      background: var(--surface); color: var(--text);
+      border-color: var(--border-2); box-shadow: var(--shadow-sm);
+    }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* Code affiché */
+    .code-box {
+      background: var(--bg-2); border: 2px solid var(--border-2);
+      border-radius: var(--r-lg); padding: var(--s6) var(--s4);
+      text-align: center; margin-bottom: var(--s3);
+    }
+    .code-val {
+      font-family: var(--font-mono); font-size: 1.6rem; font-weight: 800;
+      letter-spacing: 0.22em; color: var(--text);
+      word-break: break-all; line-height: 1.2;
+    }
+    .code-lbl { font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-3); margin-bottom: var(--s3); }
+    .code-hint { font-size: 0.75rem; color: var(--text-3); margin-top: var(--s3); }
+
+    /* QR image */
+    .qr-img {
+      width: 200px; height: 200px; border-radius: var(--r-md);
+      background: #fff; padding: 8px; display: block; margin: 0 auto var(--s3);
+    }
+
+    /* Étapes */
+    .steps { margin-bottom: var(--s4); }
+    .step {
+      display: flex; align-items: flex-start; gap: var(--s3);
+      padding: var(--s3) 0; border-bottom: 1px solid var(--border);
+    }
+    .step:last-child { border-bottom: none; }
+    .step-num {
+      width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
+      background: var(--bg-3); border: 1px solid var(--border-2);
+      font-size: 0.7rem; font-weight: 700; font-family: var(--font-mono);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-2);
+    }
+    .step-txt { font-size: 0.82rem; color: var(--text-2); line-height: 1.5; }
+    .step-txt strong { color: var(--text); }
+
+    /* Status dot animé */
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+    .dot-pulse { animation: pulse 1.5s infinite; }
+  </style>
+</head>
+<body>
+
+<script src="/js/ui.js"></script>
+<div class="toast" id="toast"></div>
+
+<!-- SIDEBAR desktop -->
+<aside class="sidebar">
+  <div class="sb-section">
+    <span class="sb-label">ROK XD</span>
+    <div class="sb-item active"><span class="sb-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg></span>Déploiement</div>
+  </div>
+  <div class="sb-section">
+    <span class="sb-label">Méthode</span>
+    <div class="sb-item" id="sb-pair" onclick="switchTab('pair')"><span class="sb-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>Code de Pairing</div>
+    <div class="sb-item" id="sb-qr" onclick="switchTab('qr')"><span class="sb-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/></svg></span>QR Code</div>
+  </div>
+</aside>
+
+<!-- CONTENU -->
+<main class="main-content" style="overflow-y:auto;">
+  <div style="padding:var(--s4); max-width:480px; margin:0 auto;">
+
+    <!-- Header -->
+    <div style="display:flex;align-items:center;gap:var(--s3);margin-bottom:var(--s5);">
+      <img src="/hadesxmd/hades.jpg" alt="HADES XMD"
+        style="width:52px;height:52px;border-radius:var(--r-md);object-fit:cover;border:1px solid var(--border);"
+        onerror="this.style.display='none'"/>
+      <div>
+        <div style="font-size:1.15rem;font-weight:800;">HADES XMD</div>
+        <div style="font-size:0.78rem;color:var(--text-3);">HADES XMD · Bot WhatsApp</div>
+      <div style="display:inline-flex;align-items:center;gap:5px;margin-top:var(--s1);padding:3px 10px;border-radius:var(--r-full);background:var(--bg-3);border:1px solid var(--border-2);font-size:0.65rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-2);"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> RAIZEL & KNUT</div>
+      </div>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:6px;font-size:0.72rem;font-family:var(--font-mono);color:var(--green);">
+        <div style="width:7px;height:7px;border-radius:50%;background:var(--green);" class="dot-pulse"></div>
+        EN LIGNE
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <div class="tab active" id="tab-pair" onclick="switchTab('pair')"> Pairing Code</div>
+      <div class="tab"       id="tab-qr"   onclick="switchTab('qr')"> QR Code</div>
+    </div>
+
+    <!--  TAB PAIRING CODE  -->
+    <div class="tab-panel active" id="panel-pair">
+
+      <div class="form-group" style="margin-bottom:var(--s3);">
+        <label class="form-label">Numéro WhatsApp</label>
+        <input class="form-input" id="pair-phone" type="tel" placeholder="2376XXXXXXXX" autocomplete="tel"/>
+      </div>
+      <div class="form-group" style="margin-bottom:var(--s4);">
+        <label class="form-label">Préfixe des commandes</label>
+        <div class="input-wrap">
+          <span class="input-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></span>
+          <input class="form-input has-icon" id="pair-prefix" type="text" placeholder="! ou . ou /" maxlength="3" value="."/>
+        </div>
+        <div style="font-size:0.72rem;color:var(--text-3);margin-top:4px;">Caractère qui précède chaque commande</div>
+      </div>
+
+      <button class="btn btn-primary btn-full" id="btn-pair">Générer le code de pairing</button>
+
+      <!-- Résultat code -->
+      <div id="pair-result" style="display:none;margin-top:var(--s4);">
+        <div class="code-box">
+          <div class="code-lbl"> Ton code de pairing</div>
+          <div class="code-val" id="pair-code">—</div>
+          <div class="code-hint"> Valable ~2 minutes · Entre-le dans WhatsApp</div>
+        </div>
+        <button class="btn btn-primary btn-full" id="btn-copy-code"> Copier le code</button>
+        <button class="btn btn-ghost btn-full btn-sm" style="margin-top:var(--s2);" id="btn-save-config"> Sauvegarder la config</button>
+        <div id="config-result" style="font-size:0.8rem;color:var(--green);margin-top:var(--s2);display:none;"></div>
+      </div>
+
+      <div id="pair-error" style="display:none;margin-top:var(--s3);font-size:0.82rem;color:var(--red);padding:var(--s3);background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:var(--r-md);"></div>
+
+      <!-- Explications -->
+      <div class="steps" style="margin-top:var(--s5);">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-txt">Entre ton <strong>numéro WhatsApp</strong> avec indicatif pays (ex: <code style="font-family:var(--font-mono);font-size:0.8rem;">2376XXXXXXXX</code>)</div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-txt">Clique <strong>Générer le code</strong> — un code à 8 chiffres apparaît</div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-txt">Sur WhatsApp <strong>Appareils liés Lier un appareil Lier avec un numéro</strong> entre le code</div>
+        </div>
+      </div>
+    </div>
+
+    <!--  TAB QR CODE  -->
+    <div class="tab-panel" id="panel-qr">
+
+      <div class="form-group" style="margin-bottom:var(--s3);">
+        <label class="form-label">Numéro WhatsApp</label>
+        <input class="form-input" id="qr-phone" type="tel" placeholder="2376XXXXXXXX"/>
+      </div>
+      <div class="form-group" style="margin-bottom:var(--s4);">
+        <label class="form-label">Préfixe des commandes</label>
+        <div class="input-wrap">
+          <span class="input-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></span>
+          <input class="form-input has-icon" id="qr-prefix" type="text" placeholder="! ou . ou /" maxlength="3" value="."/>
+        </div>
+        <div style="font-size:0.72rem;color:var(--text-3);margin-top:4px;">Caractère qui précède chaque commande</div>
+      </div>
+
+      <button class="btn btn-primary btn-full" id="btn-qr">Générer le QR Code</button>
+
+      <!-- Résultat QR -->
+      <div id="qr-result" style="display:none;margin-top:var(--s4);text-align:center;">
+        <img id="qr-img" class="qr-img" src="" alt="QR Code"/>
+        <div style="font-size:0.78rem;color:var(--text-3);">Scanne ce QR depuis WhatsApp</div>
+        <div style="font-size:0.7rem;color:var(--text-3);margin-top:4px;" id="qr-hint">Valable ~2 minutes</div>
+      </div>
+
+      <div id="qr-error" style="display:none;margin-top:var(--s3);font-size:0.82rem;color:var(--red);padding:var(--s3);background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:var(--r-md);"></div>
+
+      <!-- Explications -->
+      <div class="steps" style="margin-top:var(--s5);">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-txt">Entre ton <strong>numéro WhatsApp</strong> avec indicatif pays</div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-txt">Clique <strong>Générer le QR</strong> — le code QR apparaît</div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-txt">Sur WhatsApp <strong>Appareils liés Lier un appareil</strong> scanne le QR</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- BOTTOM NAV mobile -->
+<nav class="bottom-nav">
+  <div class="bn-item" onclick="location.href='/dashboard'">
+    <span class="bn-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></span><span>Accueil</span>
+  </div>
+  <div class="bn-item active" onclick="switchTab('pair')">
+    <span class="bn-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span><span>Pairing</span>
+  </div>
+  <div class="bn-item" onclick="switchTab('qr')">
+    <span class="bn-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/></svg></span><span>QR</span>
+  </div>
+</nav>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  injectTopbar('/dashboard');
+  ThemeManager.init();
+  initScrollNav();
+
+  //  Theme toggle 
+  document.getElementById('btn-theme').addEventListener('click', () => ThemeManager.toggle());
+
+  //  Toast 
+  function toast(msg, type) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show';
+    clearTimeout(t._t);
+    t._t = setTimeout(() => t.className = 'toast', 3000);
+  }
+
+  //  Tabs 
+  window.switchTab = function(name) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    document.getElementById('panel-' + name).classList.add('active');
+    // sidebar
+    document.querySelectorAll('.sidebar .sb-item').forEach(s => s.classList.remove('active'));
+    const sb = document.getElementById('sb-' + name);
+    if (sb) sb.classList.add('active');
+  };
+
+  //  Copier 
+  function copyText(text, label) {
+    if (navigator.clipboard && location.protocol === 'https:') {
+      navigator.clipboard.writeText(text).then(() => toast(' ' + label + ' copié !'));
+    } else {
+      const ta = document.createElement('textarea');
+      ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+      document.body.removeChild(ta);
+      toast(' ' + label + ' copié !');
+    }
+  }
+
+  // 
+  // PAIRING CODE
+  // 
+  const btnPair   = document.getElementById('btn-pair');
+  const pairRes   = document.getElementById('pair-result');
+  const pairErr   = document.getElementById('pair-error');
+  const pairCode  = document.getElementById('pair-code');
+
+  btnPair.addEventListener('click', async () => {
+    const phone  = document.getElementById('pair-phone').value.trim();
+    const prefix = document.getElementById('pair-prefix').value.trim() || '.';
+    pairErr.style.display = 'none';
+    pairRes.style.display = 'none';
+
+    if (!phone) { pairErr.textContent = 'Numéro requis.'; pairErr.style.display = ''; return; }
+
+    btnPair.disabled = true;
+    btnPair.textContent = ' Génération en cours…';
+
+    // Récupérer l'userId depuis la session Krinyx si connecté
+    let userId = null;
+    try {
+      const me = await fetch('/api/me');
+      if (me.ok) { const d = await me.json(); userId = d.user?.id || null; }
+    } catch {}
+
+    try {
+      const url = `/hadesxmd/pair/code?number=${encodeURIComponent(phone)}${userId ? '&userId=' + userId : ''}`;
+      const res  = await fetch(url);
+      const data = await res.json();
+
+      if (data.error) {
+        pairErr.textContent = data.error;
+        pairErr.style.display = '';
+      } else if (data.code) {
+        pairCode.textContent = data.code;
+        pairRes.style.display = '';
+        // Sauvegarder config auto
+        await fetch('/hadesxmd/pair/config', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ number: phone, prefix })
+        });
+        toast(' Code généré ! Entre-le dans WhatsApp.');
+      } else if (data.status) {
+        pairErr.textContent = data.status;
+        pairErr.style.display = '';
+        pairErr.style.color = 'var(--green)';
+      }
+    } catch(e) {
+      pairErr.textContent = 'Erreur serveur. Réessaie.';
+      pairErr.style.display = '';
+    } finally {
+      btnPair.disabled = false;
+      btnPair.textContent = 'Générer le code de pairing';
+    }
+  });
+
+  document.getElementById('btn-copy-code').addEventListener('click', () => {
+    copyText(pairCode.textContent, 'Code');
+  });
+
+  document.getElementById('btn-save-config').addEventListener('click', async () => {
+    const phone  = document.getElementById('pair-phone').value.trim();
+    const prefix = document.getElementById('pair-prefix').value.trim() || '.';
+    if (!phone) return;
+    const res  = await fetch('/hadesxmd/pair/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ number: phone, prefix }) });
+    const data = await res.json();
+    const el = document.getElementById('config-result');
+    el.textContent = data.status || data.error || ' Config sauvegardée';
+    el.style.display = '';
+    setTimeout(() => el.style.display = 'none', 3000);
+  });
+
+  // 
+  // QR CODE
+  // 
+  const btnQr  = document.getElementById('btn-qr');
+  const qrRes  = document.getElementById('qr-result');
+  const qrErr  = document.getElementById('qr-error');
+  const qrImg  = document.getElementById('qr-img');
+
+  btnQr.addEventListener('click', async () => {
+    const phone  = document.getElementById('qr-phone').value.trim();
+    const prefix = document.getElementById('qr-prefix').value.trim() || '.';
+    qrErr.style.display = 'none';
+    qrRes.style.display = 'none';
+
+    if (!phone) { qrErr.textContent = 'Numéro requis.'; qrErr.style.display = ''; return; }
+
+    btnQr.disabled = true;
+    btnQr.textContent = ' Génération du QR…';
+
+    try {
+      const res  = await fetch(`/rokxd/qr?number=${encodeURIComponent(phone)}&prefix=${encodeURIComponent(prefix)}`);
+      const data = await res.json();
+
+      if (data.error) {
+        qrErr.textContent = data.error;
+        qrErr.style.display = '';
+      } else if (data.qr) {
+        qrImg.src = data.qr;
+        qrRes.style.display = '';
+        toast(' QR généré ! Scanne-le depuis WhatsApp.');
+        // Countdown 2 min
+        let secs = 120;
+        const hint = document.getElementById('qr-hint');
+        const countdown = setInterval(() => {
+          secs--;
+          hint.textContent = `Valable encore ${secs}s`;
+          if (secs <= 0) { clearInterval(countdown); hint.textContent = 'QR expiré — génère-en un nouveau'; }
+        }, 1000);
+      }
+    } catch(e) {
+      qrErr.textContent = 'Erreur serveur. Réessaie.';
+      qrErr.style.display = '';
+    } finally {
+      btnQr.disabled = false;
+      btnQr.textContent = 'Générer le QR Code';
+    }
+  });
+
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <title>Krinyx | Dashboard</title>
+  <script>(function(){var t=localStorage.getItem("krinyx_theme")||"dark";document.documentElement.setAttribute("data-theme",t);var l=localStorage.getItem("krinyx_lang")||"fr";document.documentElement.setAttribute("lang",l);})()</script>
+  <link rel="stylesheet" href="/theme_/theme.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&display=swap" rel="stylesheet"/>
+  <style>
+    html, body { height: 100%; overflow: hidden; background: var(--bg); transition: background var(--t-mid); }
+    .toast {
+      position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px);
+      z-index: 500; opacity: 0; transition: all 0.25s var(--ease);
+      background: var(--surface); border: 1px solid var(--border-2);
+      border-radius: var(--r-full); padding: 0.5rem 1.25rem;
+      font-size: 0.85rem; font-weight: 500; white-space: nowrap;
+      box-shadow: var(--shadow-lg); pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    @media (min-width: 700px) { .toast { bottom: 20px; } }
+
+    /* ── Main scrollable page ── */
+    .dash-page {
+      position: fixed;
+      top: 48px; bottom: 56px;
+      left: 0; right: 0;
+      overflow-y: auto; overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      padding: var(--s4);
+      display: flex; flex-direction: column; gap: var(--s4);
+    }
+    @media (min-width: 700px) {
+      .dash-page { bottom: 0; padding: var(--s6); }
+    }
+
+    /* ── Hero greeting card ── */
+    .hero-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--r-lg); padding: var(--s4);
+      display: flex; align-items: flex-start; justify-content: space-between; gap: var(--s3);
+    }
+    .hero-greeting { font-size: 1.1rem; font-weight: 800; color: var(--text); margin-bottom: 3px; }
+    .hero-sub { font-size: 0.77rem; color: var(--text-3); }
+    .hero-status {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: var(--bg-3); border: 1px solid var(--border-2);
+      border-radius: var(--r-full); padding: 3px 10px;
+      font-size: 0.63rem; font-weight: 700; font-family: var(--font-mono);
+      letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-2);
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .hero-status.admin { border-color: rgba(167,139,250,0.4); color: var(--purple); background: rgba(167,139,250,0.08); }
+
+    /* ── Stats row ── */
+    .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s3); }
+    .stat-big {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--r-lg); padding: var(--s4);
+      cursor: pointer; transition: all var(--t-fast); position: relative; overflow: hidden;
+    }
+    .stat-big:hover { border-color: var(--border-2); transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+    .stat-big-label { font-size: 0.63rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-3); margin-bottom: var(--s2); }
+    .stat-big-value { font-size: 2rem; font-weight: 900; font-family: var(--font-mono); color: var(--text); line-height: 1; }
+    .stat-big-sub { font-size: 0.68rem; color: var(--text-3); margin-top: 4px; }
+    .stat-big-icon { position: absolute; bottom: var(--s3); right: var(--s3); opacity: 0.12; }
+
+    /* ── Section divider ── */
+    .divider {
+      display: flex; align-items: center; gap: var(--s3);
+      color: var(--text-3); font-size: 0.68rem; font-weight: 800;
+      letter-spacing: 0.12em; text-transform: uppercase;
+    }
+    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    /* ── 2x2 service grid ── */
+    .svc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s3); }
+    .svc-card {
+      background: var(--bg-2); border: 1px solid var(--border);
+      border-radius: var(--r-md); padding: var(--s4);
+      cursor: pointer; transition: all var(--t-fast);
+      display: flex; flex-direction: column; align-items: center;
+      text-align: center; gap: var(--s2);
+    }
+    .svc-card:hover { border-color: var(--border-2); background: var(--bg-hover); transform: translateY(-2px); box-shadow: var(--shadow-sm); }
+    .svc-icon {
+      width: 44px; height: 44px; border-radius: var(--r-md);
+      background: var(--bg-3); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .svc-name { font-size: 0.7rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text); }
+    .svc-desc { font-size: 0.67rem; color: var(--text-3); line-height: 1.4; }
+    .svc-price {
+      font-size: 0.68rem; font-family: var(--font-mono); font-weight: 600;
+      color: var(--text-2); background: var(--bg-3);
+      padding: 2px 8px; border-radius: var(--r-full);
+    }
+    .svc-price.free { color: var(--green); }
+
+    /* ── Active services badges ── */
+    .active-row { display: flex; gap: var(--s2); flex-wrap: wrap; }
+    .active-badge {
+      display: flex; align-items: center; gap: var(--s2);
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--r-md); padding: var(--s2) var(--s3);
+      font-size: 0.72rem; font-weight: 600; color: var(--text-2);
+      cursor: pointer; transition: all var(--t-fast);
+    }
+    .active-badge:hover { border-color: var(--border-2); color: var(--text); }
+    .dot-green { width: 6px; height: 6px; border-radius: 50%; background: var(--green); flex-shrink: 0; display: inline-block; }
+    .dot-purple { width: 6px; height: 6px; border-radius: 50%; background: var(--purple); flex-shrink: 0; display: inline-block; }
+    .badge-num {
+      font-family: var(--font-mono); font-size: 0.63rem;
+      background: var(--bg-3); padding: 1px 6px; border-radius: var(--r-full); color: var(--text-3);
+    }
+
+    /* ── Panel box ── */
+    .panel-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden; }
+    .panel-head { display: flex; align-items: center; justify-content: space-between; padding: var(--s3) var(--s4); border-bottom: 1px solid var(--border); }
+    .panel-title { font-size: 0.78rem; font-weight: 700; }
+    .panel-body { padding: var(--s4); }
+
+    /* ── Panel cards ── */
+    .ph { background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--r-md); padding: var(--s4); margin-bottom: var(--s3); }
+    .ph:last-child { margin-bottom: 0; }
+    .ph-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--s3); }
+    .ph-name { font-weight: 700; font-size: 0.9rem; }
+    .ph-on  { font-size: 0.7rem; color: var(--green); font-family: var(--font-mono); display:flex;align-items:center;gap:4px; }
+    .ph-off { font-size: 0.7rem; color: var(--red); font-family: var(--font-mono); }
+    .ph-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s3); margin-bottom: var(--s3); }
+    .ph-fl { font-size: 0.62rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-3); margin-bottom: 2px; }
+    .ph-fv { font-size: 0.82rem; font-family: var(--font-mono); color: var(--text-2); word-break: break-all; }
+    .ph-pw { display: flex; align-items: center; gap: var(--s2); }
+    .ph-pw-val { font-family: var(--font-mono); font-size: 0.82rem; }
+    .ph-pw-btn { background: none; border: none; cursor: pointer; font-size: 0.8rem; padding: 2px; color: var(--text-3); }
+    .ph-exp { font-size: 0.7rem; color: var(--text-3); font-family: var(--font-mono); margin-bottom: var(--s3); }
+    .ph-acts { display: flex; gap: var(--s2); }
+    .ph-btn { padding: 0.4rem 0.75rem; border-radius: var(--r-sm); font-size: 0.75rem; font-weight: 600; cursor: pointer; border: 1px solid var(--border-2); background: var(--bg-3); color: var(--text-2); text-decoration: none; transition: all var(--t-fast); display: inline-flex; align-items: center; gap: 4px; }
+    .ph-btn:hover { border-color: var(--text); color: var(--text); }
+
+    /* ── Empty state ── */
+    .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: var(--s6) var(--s4); gap: var(--s3); text-align: center; }
+    .empty-icon { opacity: 0.25; }
+    .empty-text { font-size: 0.85rem; color: var(--text-3); }
+
+    /* ── Admin sep ── */
+    .admin-sep { display: flex; align-items: center; gap: var(--s3); color: var(--text-3); font-size: 0.68rem; letter-spacing: 0.07em; text-transform: uppercase; }
+    .admin-sep::before, .admin-sep::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    /* ── Service modal ── */
+    .m-svc-name { font-size: 1rem; font-weight: 700; margin-bottom: var(--s1); }
+    .m-svc-price { font-family: var(--font-mono); font-size: 0.85rem; color: var(--text-3); margin-bottom: var(--s3); }
+    .m-info { font-size: 0.8rem; color: var(--text-3); margin-bottom: var(--s3); }
+    .m-err { display: none; font-size: 0.8rem; color: var(--red); margin-bottom: var(--s3); }
+    .m-err.show { display: block; }
+
+    /* ── Base bot box ── */
+    #basebot-download-box {
+      display: none; padding: var(--s4);
+      background: rgba(34,197,94,.07); border: 1px solid rgba(34,197,94,.2);
+      border-radius: var(--r-md);
+    }
+
+    /* ── NOTIFICATION BELL ── */
+    .notif-bell {
+      position: relative; width: 36px; height: 36px;
+      border-radius: 50%; background: var(--bg-3);
+      border: 1px solid var(--border); cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all var(--t-fast); flex-shrink: 0;
+    }
+    .notif-bell:hover { border-color: var(--border-2); background: var(--bg-hover); }
+    .notif-badge {
+      position: absolute; top: -4px; right: -4px;
+      width: 16px; height: 16px; border-radius: 50%;
+      background: var(--red); color: #fff; font-size: 0.6rem;
+      font-weight: 800; display: flex; align-items: center; justify-content: center;
+      border: 2px solid var(--bg); display: none;
+    }
+    .notif-badge.show { display: flex; }
+
+    /* Notification drawer */
+    .notif-drawer {
+      position: fixed; top: 52px; right: var(--s4); z-index: 900;
+      width: min(340px, calc(100vw - 32px));
+      background: var(--surface); border: 1px solid var(--border-2);
+      border-radius: var(--r-lg); box-shadow: var(--shadow-lg);
+      overflow: hidden; transform: translateY(-8px) scale(0.97);
+      opacity: 0; pointer-events: none;
+      transition: all 0.2s var(--ease);
+    }
+    .notif-drawer.open { transform: none; opacity: 1; pointer-events: all; }
+    .notif-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: var(--s3) var(--s4); border-bottom: 1px solid var(--border);
+    }
+    .notif-head-title { font-size: 0.8rem; font-weight: 800; }
+    .notif-mark-read {
+      font-size: 0.68rem; color: var(--text-3); cursor: pointer;
+      background: none; border: none; padding: 0; font-family: inherit;
+    }
+    .notif-mark-read:hover { color: var(--text); }
+    .notif-list { max-height: 320px; overflow-y: auto; }
+    .notif-item {
+      display: flex; gap: var(--s3); padding: var(--s3) var(--s4);
+      border-bottom: 1px solid var(--border); cursor: pointer;
+      transition: background var(--t-fast);
+    }
+    .notif-item:last-child { border-bottom: none; }
+    .notif-item:hover { background: var(--bg-hover); }
+    .notif-item.unread { background: rgba(99,102,241,.05); }
+    .notif-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+    .notif-dot.info { background: var(--purple); }
+    .notif-dot.success { background: var(--green); }
+    .notif-dot.warning { background: #f59e0b; }
+    .notif-dot.error { background: var(--red); }
+    .notif-dot.read { background: var(--border-2); }
+    .notif-content { flex: 1; min-width: 0; }
+    .notif-msg { font-size: 0.78rem; color: var(--text); line-height: 1.4; margin-bottom: 2px; }
+    .notif-time { font-size: 0.65rem; color: var(--text-3); font-family: var(--font-mono); }
+    .notif-empty {
+      padding: var(--s5) var(--s4); text-align: center;
+      font-size: 0.78rem; color: var(--text-3);
+    }
+
+    /* ── UNIFIED BOTS DASHBOARD ── */
+    .bots-unified { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden; }
+    .bots-unified-head { display: flex; align-items: center; justify-content: space-between; padding: var(--s3) var(--s4); border-bottom: 1px solid var(--border); }
+    .bots-unified-title { font-size: 0.78rem; font-weight: 700; }
+    .bots-unified-list { display: flex; flex-direction: column; }
+    .bot-row {
+      display: flex; align-items: center; gap: var(--s3);
+      padding: var(--s3) var(--s4); border-bottom: 1px solid var(--border);
+      cursor: pointer; transition: background var(--t-fast);
+    }
+    .bot-row:last-child { border-bottom: none; }
+    .bot-row:hover { background: var(--bg-hover); }
+    .bot-row-avatar { width: 36px; height: 36px; border-radius: var(--r-md); object-fit: cover; border: 1px solid var(--border-2); background: var(--bg-3); flex-shrink: 0; }
+    .bot-row-info { flex: 1; min-width: 0; }
+    .bot-row-name { font-size: 0.82rem; font-weight: 800; color: var(--text); }
+    .bot-row-sub { font-size: 0.65rem; color: var(--text-3); font-family: var(--font-mono); }
+    .bot-row-status { display: flex; align-items: center; gap: 5px; font-size: 0.68rem; font-weight: 700; }
+    .bot-row-status.online { color: var(--green); }
+    .bot-row-status.offline { color: var(--text-3); }
+    .dot-pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.3} }
+    .bot-row-price { font-size: 0.68rem; font-family: var(--font-mono); color: var(--text-3); background: var(--bg-3); padding: 2px 8px; border-radius: var(--r-full); white-space: nowrap; }
+  </style>
+</head>
+<body>
+
+<script src="./js/ui.js"></script>
+<script src="/js/services-guard.js"></script>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- NOTIFICATION DRAWER -->
+<div class="notif-drawer" id="notif-drawer">
+  <div class="notif-head">
+    <span class="notif-head-title">🔔 Notifications</span>
+    <button class="notif-mark-read" onclick="markAllRead()">Tout marquer lu</button>
+  </div>
+  <div class="notif-list" id="notif-list">
+    <div class="notif-empty">Aucune notification</div>
+  </div>
+</div>
+
+<!-- SERVICE MODAL -->
+<div class="modal-overlay" id="modal-svc">
+  <div class="modal">
+    <div class="modal-title">Activer le service</div>
+    <div class="m-svc-name" id="ms-name"></div>
+    <div class="m-svc-price" id="ms-price"></div>
+    <div class="m-info" id="ms-info"></div>
+    <div class="m-err" id="ms-err"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" id="ms-ok">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        Activer
+      </button>
+      <button class="btn btn-ghost" id="ms-cancel">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ SCROLLABLE PAGE ════════ -->
+<div class="dash-page" id="dash-page" data-scrollable="main">
+
+  <!-- 1. GREETING -->
+  <div class="hero-card">
+    <div>
+      <div class="hero-greeting" id="b-hello">Bonjour, Username </div>
+      <div class="hero-sub">Tableau de bord · Krinyx</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:var(--s2);">
+      <div class="notif-bell" id="notif-bell" onclick="toggleNotifDrawer()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span class="notif-badge" id="notif-badge">0</span>
+      </div>
+      <span class="hero-status" id="b-role">UTILISATEUR</span>
+    </div>
+  </div>
+
+  <!-- 2. STATS -->
+  <div class="stats-row">
+    <div class="stat-big" style="cursor:default;position:relative;">
+      <div class="stat-big-label">Solde crédit</div>
+      <div class="stat-big-value" id="v-credits">0</div>
+      <div class="stat-big-sub">crédits dispo</div>
+      <div class="stat-big-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      </div>
+      <a href="./pages/buy.html" style="position:absolute;top:var(--s3);right:var(--s3);width:26px;height:26px;border-radius:50%;background:var(--text);color:var(--text-inv);display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:700;line-height:1;text-decoration:none;z-index:2;">+</a>
+    </div>
+    <div class="stat-big" onclick="document.getElementById('section-services').scrollIntoView({behavior:'smooth'})">
+      <div class="stat-big-label">Services dispo</div>
+      <div class="stat-big-value">4</div>
+      <div class="stat-big-sub">actifs</div>
+      <div class="stat-big-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2.5 TABLEAU DE BORD UNIFIÉ DES BOTS -->
+  <div>
+    <div class="divider" style="margin-bottom:var(--s3);"><span>Mes Bots Actifs</span></div>
+    <div class="bots-unified">
+      <div class="bots-unified-head">
+        <span class="bots-unified-title">Tableau de bord unifié</span>
+        <a href="/bot" class="btn btn-ghost btn-sm">+ Déployer</a>
+      </div>
+      <div class="bots-unified-list" id="unified-bots-list">
+        <div class="notif-empty" style="padding:var(--s4);text-align:center;font-size:.78rem;color:var(--text-3);">
+          Aucun bot actif · <a href="/bot" style="color:var(--text-2);">Déployer un bot →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. NOS SERVICES -->
+  <div id="section-services">
+    <div class="divider" style="margin-bottom:var(--s3);"><span>NOS SERVICES</span></div>
+    <div class="svc-grid">
+
+      <div class="svc-card" data-service="bot_deploy" onclick="if(window.krinyxServiceGuard && !window.krinyxServiceGuard('bot_deploy'))return; window.location.href='/bot'">
+        <div class="svc-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect width="18" height="10" x="3" y="11" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" x2="8" y1="16" y2="16"/><line x1="16" x2="16" y1="16" y2="16"/></svg>
+        </div>
+        <div class="svc-name">Déployer un Bot</div>
+        <div class="svc-desc">WhatsApp Bot en 2 min</div>
+        <span class="svc-price free">dès 7 CR</span>
+      </div>
+
+      <div class="svc-card" data-service="panel_buy" onclick="if(window.krinyxServiceGuard && !window.krinyxServiceGuard('panel_buy'))return; window.location.href='/panel'">
+        <div class="svc-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>
+        </div>
+        <div class="svc-name">Acheter un Panel</div>
+        <div class="svc-desc">Hébergement bot auto</div>
+        <span class="svc-price">dès 20 CR</span>
+      </div>
+
+      <div class="svc-card" onclick="window.location.href='/formation'">
+        <div class="svc-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        </div>
+        <div class="svc-name">Formation</div>
+        <div class="svc-desc">JS, Bots, IA, Design</div>
+        <span class="svc-price free">Gratuit</span>
+      </div>
+
+      <div class="svc-card" onclick="buyDesign()">
+        <div class="svc-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
+        </div>
+        <div class="svc-name">Design UI</div>
+        <div class="svc-desc">Flyers, UI, graphisme</div>
+        <span class="svc-price">15 CR</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 4. SERVICES ACTIFS -->
+  <div>
+    <div class="divider" style="margin-bottom:var(--s3);"><span>Services Actifs</span></div>
+    <div class="active-row" style="margin-bottom:var(--s3);">
+      <div class="active-badge" onclick="window.location.href='/panel'">
+        <span class="dot-green"></span>
+        Panel Actif
+        <span class="badge-num" id="cnt-panels">0</span>
+      </div>
+      <div class="active-badge" onclick="window.location.href='/bot'">
+        <span class="dot-green"></span>
+        Bot Actif
+        <span class="badge-num" id="cnt-bots">0</span>
+      </div>
+      <div class="active-badge" onclick="window.location.href='/buy'">
+        <span class="dot-purple"></span>
+        Premium
+        <span class="badge-num" id="cnt-premium">—</span>
+      </div>
+    </div>
+
+    <!-- Panels list -->
+    <div class="panel-box">
+      <div class="panel-head">
+        <span class="panel-title">Mes hébergements</span>
+        <button class="btn btn-ghost btn-sm" id="btn-refresh">↻ Actualiser</button>
+      </div>
+      <div class="panel-body" id="panels-list">
+        <div class="empty-state">
+          <div class="empty-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>
+          </div>
+          <div class="empty-text">Aucun panel actif</div>
+          <a href="/panel" class="btn btn-secondary btn-sm" data-service="panel_buy" onclick="if(window.krinyxServiceGuard && !window.krinyxServiceGuard('panel_buy'))return false;" style="margin-top:4px;">Acheter un panel →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BASE BOT DOWNLOAD (hidden until purchased) -->
+  <div id="basebot-download-box">
+    <div style="font-size:.85rem;font-weight:700;color:var(--green);margin-bottom:var(--s2);display:flex;align-items:center;gap:6px;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+      Base Bot débloquée !
+    </div>
+    <div style="font-size:.78rem;color:var(--text-2);margin-bottom:var(--s3);line-height:1.5;">Télécharge les fichiers sources pour créer ton propre bot WhatsApp XMD.</div>
+    <a href="/base/basebot.zip" download class="btn btn-primary btn-sm" style="display:inline-flex;align-items:center;gap:6px;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+      Télécharger basebot.zip
+    </a>
+  </div>
+
+  <!-- ADMIN -->
+  <div>
+    <div class="admin-sep" style="margin-bottom:var(--s3);"><span>Administration</span></div>
+    <button id="btn-admin" onclick="goAdmin()" class="btn btn-ghost btn-full" style="border:1px solid var(--border);">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <span id="btn-admin-label">Connexion Administrateur</span>
+    </button>
+  </div>
+
+  <!-- Spacer -->
+  <div style="height: var(--s5);"></div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <a class="bn-item active" href="/dashboard">
+    <span class="bn-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    </span>
+    <span>Accueil</span>
+  </a>
+  <a class="bn-item" href="/profil">
+    <span class="bn-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    </span>
+    <span>Profil</span>
+  </a>
+  <a class="bn-item" href="/help">
+    <span class="bn-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+    </span>
+    <span>Aide</span>
+  </a>
+</nav>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  injectTopbar('/dashboard');
+  ThemeManager.init();
+  i18n.init();
+
+  var user = null;
+  try { user = JSON.parse(localStorage.getItem('krinyx_session')); } catch(e) {}
+  if (!user) { window.location.href = '/login'; return; }
+
+  function S(id, v) { var e = document.getElementById(id); if (e) e.innerHTML = v; }
+
+  function toast(msg) {
+    var t = document.getElementById('toast');
+    t.textContent = msg; t.className = 'toast show';
+    clearTimeout(t._t); t._t = setTimeout(() => t.className = 'toast', 3000);
+  }
+
+  function loadUser() {
+    if (!user) return;
+    var cr  = user.credits !== undefined ? user.credits : 50;
+    var un  = user.username || (user.email ? user.email.split('@')[0] : 'USER');
+    var ini = un.slice(0, 2).toUpperCase();
+    var isAdmin = user.isAdmin || user.isadmin || user.role === 'admin';
+
+    if (document.getElementById('nav-cr')) S('nav-cr', cr);
+    if (document.getElementById('av-btn')) document.getElementById('av-btn').textContent = ini;
+
+    S('b-hello', 'Bonjour, ' + un + ' \uD83D\uDC4B');
+    var roleEl = document.getElementById('b-role');
+    if (roleEl) {
+      roleEl.textContent = isAdmin ? 'ADMIN' : 'UTILISATEUR';
+      if (isAdmin) roleEl.classList.add('admin');
+    }
+
+    S('v-credits', cr);
+    S('cnt-panels', user.panels || 0);
+    S('cnt-bots', user.services || 0);
+
+    if (window.Wallet) Wallet.set(cr);
+
+    if (isAdmin) {
+      var btn = document.getElementById('btn-admin');
+      var lbl = document.getElementById('btn-admin-label');
+      if (btn) { btn.style.borderColor = 'rgba(239,68,68,0.35)'; btn.style.color = 'var(--red)'; }
+      if (lbl) lbl.textContent = '⚡ Espace Administrateur';
+    }
+  }
+  loadUser();
+
+  window.goAdmin = function() {
+    var u = null; try { u = JSON.parse(localStorage.getItem('krinyx_session')); } catch(e) {}
+    var isAdmin = u && (u.isAdmin || u.isadmin || u.role === 'admin');
+    window.location.href = isAdmin ? '/admindashboard' : '/admin-login';
+  };
+
+  window.buyDesign = function() {
+    var u = null; try { u = JSON.parse(localStorage.getItem('krinyx_session')); } catch(e) {}
+    var cr = u ? (u.credits || u.coins || 0) : 0;
+    if (cr < 200) { toast('Crédits insuffisants — 200 CR requis (solde : ' + cr + ' CR)'); return; }
+    var msg = encodeURIComponent('Bonjour, je suis un utilisateur Krinyx et je souhaite bénéficier du service de Conception Graphique. Mon nom : ' + (u ? u.username : ''));
+    window.open('https://wa.me/237673941535?text=' + msg, '_blank');
+    fetch('/api/service/activate', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ userId: u ? u.id : null, service:'Design UI', cost:15 }) }).catch(()=>{});
+    if (window.Wallet) Wallet.deduct(15);
+    toast('Redirection vers WhatsApp…');
+  };
+
+  if (localStorage.getItem('krinyx_basebot_unlocked')) {
+    var box = document.getElementById('basebot-download-box');
+    if (box) box.style.display = 'block';
+  }
+
+  function togglePw(id, pw) {
+    var e = document.getElementById('pw-' + id);
+    if (!e) return;
+    e.textContent = e.textContent.includes('\u2022') ? pw : '\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022';
+  }
+  function copyAcc(url, un, pw, name) {
+    var txt = 'Panel : ' + name + '\nLien : ' + url + '\nUtilisateur : ' + un + '\nMot de passe : ' + pw;
+    if (navigator.clipboard) navigator.clipboard.writeText(txt).then(() => toast('Accès copié !')).catch(() => toast('Erreur copie'));
+  }
+  window.togglePw = togglePw;
+  window.copyAcc = copyAcc;
+
+  function renderPanels(panels) {
+    var active = panels.filter(p => new Date(p.expiresAt) > new Date());
+    S('cnt-panels', active.length);
+    user.panels = active.length;
+    localStorage.setItem('krinyx_session', JSON.stringify(user));
+    var c = document.getElementById('panels-list');
+    if (!panels.length) {
+      c.innerHTML = '<div class="empty-state"><div class="empty-icon"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg></div><div class="empty-text">Aucun panel actif</div><a href="/panel" class="btn btn-secondary btn-sm" data-service="panel_buy" onclick="if(window.krinyxServiceGuard \\&\\& !window.krinyxServiceGuard(\\'panel_buy\\'))return false;" style="margin-top:8px;">Acheter un panel \u2192</a></div>';
+      return;
+    }
+    c.innerHTML = panels.map(p => {
+      var exp = new Date(p.expiresAt) < new Date();
+      var ed = new Date(p.expiresAt).toLocaleDateString();
+      var url = p.panelUrl || '#', un = p.panelUser || '\u2014', pw = p.panelPassword || '', nm = p.name || 'Panel';
+      return '<div class="ph"><div class="ph-top"><span class="ph-name">'+nm+'</span><span class="'+(exp?'ph-off':'ph-on')+'">'+(exp?'\u2715 Expiré':'<span style="width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;"></span> Actif')+'</span></div><div class="ph-grid"><div><div class="ph-fl">Lien</div><div class="ph-fv">'+url+'</div></div><div><div class="ph-fl">Utilisateur</div><div class="ph-fv">'+un+'</div></div><div style="grid-column:1/-1"><div class="ph-fl">Mot de passe</div><div class="ph-pw"><span class="ph-pw-val" id="pw-'+p.id+'">\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022</span><button class="ph-pw-btn" onclick="togglePw(\''+p.id+'\',\''+pw+'\')">\uD83D\uDC41</button></div></div></div><div class="ph-exp">Expire le '+ed+'</div><div class="ph-acts"><a class="ph-btn" href="'+url+'" target="_blank" rel="noopener">\uD83D\uDD17 Accéder</a><button class="ph-btn" onclick="copyAcc(\''+url+'\',\''+un+'\',\''+pw+'\',\''+nm+'\')">\uD83D\uDCCB Copier</button></div></div>';
+    }).join('');
+  }
+
+  function loadPanels() {
+    fetch('/api/panels/user/' + user.id)
+      .then(r => r.json())
+      .then(d => { if (d.success) renderPanels(d.panels); else throw 0; })
+      .catch(() => {
+        var loc = []; try { loc = JSON.parse(localStorage.getItem('krinyx_panels_' + (user.id || 'local')) || '[]'); } catch(e) {}
+        renderPanels(loc);
+      });
+  }
+  loadPanels();
+
+  var btnR = document.getElementById('btn-refresh');
+  if (btnR) btnR.addEventListener('click', () => { loadPanels(); toast('↻ Actualisation…'); });
+
+  // ════════ SYSTÈME DE NOTIFICATIONS ════════
+  var NOTIF_KEY = 'krinyx_notifs_' + (user ? user.id : 'guest');
+
+  function getNotifs() {
+    try { return JSON.parse(localStorage.getItem(NOTIF_KEY) || '[]'); } catch(e) { return []; }
+  }
+  function saveNotifs(notifs) {
+    localStorage.setItem(NOTIF_KEY, JSON.stringify(notifs));
+  }
+  function addNotif(msg, type) {
+    type = type || 'info';
+    var notifs = getNotifs();
+    notifs.unshift({ id: Date.now(), msg: msg, type: type, read: false, time: new Date().toISOString() });
+    if (notifs.length > 30) notifs = notifs.slice(0, 30);
+    saveNotifs(notifs);
+    renderNotifs();
+  }
+  function timeAgo(iso) {
+    var diff = Math.floor((Date.now() - new Date(iso)) / 1000);
+    if (diff < 60) return 'À l\'instant';
+    if (diff < 3600) return Math.floor(diff/60) + ' min';
+    if (diff < 86400) return Math.floor(diff/3600) + 'h';
+    return Math.floor(diff/86400) + 'j';
+  }
+  function renderNotifs() {
+    var notifs = getNotifs();
+    var unread = notifs.filter(function(n){ return !n.read; }).length;
+    var badge = document.getElementById('notif-badge');
+    if (badge) {
+      badge.textContent = unread;
+      badge.className = 'notif-badge' + (unread > 0 ? ' show' : '');
+    }
+    var list = document.getElementById('notif-list');
+    if (!list) return;
+    if (!notifs.length) {
+      list.innerHTML = '<div class="notif-empty">🔕 Aucune notification</div>';
+      return;
+    }
+    list.innerHTML = notifs.map(function(n) {
+      return '<div class="notif-item' + (n.read ? '' : ' unread') + '" onclick="readNotif(' + n.id + ')">' +
+        '<div class="notif-dot ' + (n.read ? 'read' : n.type) + '"></div>' +
+        '<div class="notif-content">' +
+          '<div class="notif-msg">' + n.msg + '</div>' +
+          '<div class="notif-time">' + timeAgo(n.time) + '</div>' +
+        '</div></div>';
+    }).join('');
+  }
+  window.readNotif = function(id) {
+    var notifs = getNotifs();
+    notifs = notifs.map(function(n){ return n.id === id ? Object.assign({}, n, {read:true}) : n; });
+    saveNotifs(notifs); renderNotifs();
+  };
+  window.markAllRead = function() {
+    var notifs = getNotifs().map(function(n){ return Object.assign({}, n, {read:true}); });
+    saveNotifs(notifs); renderNotifs();
+  };
+  window.toggleNotifDrawer = function() {
+    var d = document.getElementById('notif-drawer');
+    if (d) d.classList.toggle('open');
+  };
+  document.addEventListener('click', function(e) {
+    var bell = document.getElementById('notif-bell');
+    var drawer = document.getElementById('notif-drawer');
+    if (drawer && bell && !bell.contains(e.target) && !drawer.contains(e.target)) {
+      drawer.classList.remove('open');
+    }
+  });
+
+  // Injecter des notifications de bienvenue si première visite
+  if (!localStorage.getItem('krinyx_notif_init_' + (user ? user.id : ''))) {
+    addNotif('👋 Bienvenue sur Krinyx ! Déployez votre premier bot.', 'info');
+    addNotif('💳 Rechargez vos crédits pour accéder aux services premium.', 'warning');
+    localStorage.setItem('krinyx_notif_init_' + (user ? user.id : ''), '1');
+  }
+
+  // Vérifier expiration panels et notifier
+  (function checkPanelExpiry() {
+    var panels = [];
+    try { panels = JSON.parse(localStorage.getItem('krinyx_panels_' + (user ? user.id : 'local')) || '[]'); } catch(e) {}
+    panels.forEach(function(p) {
+      var diff = new Date(p.expiresAt) - new Date();
+      if (diff > 0 && diff < 3 * 24 * 3600 * 1000) {
+        addNotif('⚠️ Votre panel "' + (p.name||'Panel') + '" expire dans moins de 3 jours !', 'warning');
+      } else if (diff < 0) {
+        addNotif('❌ Votre panel "' + (p.name||'Panel') + '" a expiré. Renouvelez-le.', 'error');
+      }
+    });
+  })();
+
+  renderNotifs();
+
+  // ════════ TABLEAU DE BORD UNIFIÉ DES BOTS ════════
+  var BOTS_META = [
+    { id:'knutxmd',   name:'KNUT XMD V4',  img:'/knutxmd/knut.jpg',       price:'7 CR/j',  url:'/knut'   },
+    { id:'raizelxmd', name:'RAIZEL XMD',   img:'/raizelxmd/cover.jpg',     price:'7 CR/j',  url:'/raizel' },
+    { id:'kratosxmd', name:'KRATOS XMD',   img:'/kratosxmd/kratos.jpg',    price:'7 CR/j',  url:'/kratos' },
+    { id:'hadesxmd',  name:'HADES XMD',    img:'/hadesxmd/hades.jpg',      price:'7 CR/j',  url:'/hades'  },
+    { id:'kyroxmd',   name:'KYRO XMD',     img:'/kyroxmd/kyro.jpg',        price:'7 CR/j',  url:'/kyro'   },
+    { id:'rokxd',     name:'ROK XD',       img:'/rokxd/rok.jpg',           price:'7 CR/j',  url:'/rok'    },
+  ];
+  function renderUnifiedBots() {
+    var myBots = [];
+    try { myBots = JSON.parse(localStorage.getItem('krinyx_deployed_' + (user ? user.id : '')) || '[]'); } catch(e) {}
+    var container = document.getElementById('unified-bots-list');
+    if (!container) return;
+    var activeBots = BOTS_META.filter(function(b) { return myBots.indexOf(b.id) !== -1; });
+    if (!activeBots.length) {
+      container.innerHTML = '<div style="padding:var(--s4);text-align:center;font-size:.78rem;color:var(--text-3);">Aucun bot actif · <a href="/bot" style="color:var(--text-2);">Déployer un bot →</a></div>';
+      return;
+    }
+    container.innerHTML = activeBots.map(function(b) {
+      return '<div class="bot-row" onclick="window.location.href=\'' + b.url + '\'">' +
+        '<img class="bot-row-avatar" src="' + b.img + '" alt="' + b.name + '" onerror="this.src=\'\'">' +
+        '<div class="bot-row-info">' +
+          '<div class="bot-row-name">' + b.name + '</div>' +
+          '<div class="bot-row-sub">WhatsApp Bot · Krinyx</div>' +
+        '</div>' +
+        '<div class="bot-row-status online"><div class="dot-pulse"></div>EN LIGNE</div>' +
+        '<span class="bot-row-price">' + b.price + '</span>' +
+      '</div>';
+    }).join('');
+  }
+  // Détecter les bots déployés depuis les panels
+  (function syncDeployedBots() {
+    var panels = [];
+    try { panels = JSON.parse(localStorage.getItem('krinyx_panels_' + (user ? user.id : 'local')) || '[]'); } catch(e) {}
+    var deployed = [];
+    panels.forEach(function(p) {
+      if (p.botId && new Date(p.expiresAt) > new Date()) deployed.push(p.botId);
+    });
+    // Aussi lire les bots déployés via l'API bot.html
+    var existing = [];
+    try { existing = JSON.parse(localStorage.getItem('krinyx_deployed_' + (user ? user.id : '')) || '[]'); } catch(e) {}
+    var merged = Array.from(new Set(existing.concat(deployed)));
+    localStorage.setItem('krinyx_deployed_' + (user ? user.id : ''), JSON.stringify(merged));
+  })();
+  renderUnifiedBots();
+
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <title>Krinyx | Centre d'aide</title>
+  <script>(function(){var t=localStorage.getItem("krinyx_theme")||"dark";document.documentElement.setAttribute("data-theme",t);})()</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/theme_/theme.css"/>
+  <style>
+    html,body{min-height:100%;background:var(--bg);}
+    body{font-family:'DM Sans',system-ui,sans-serif;padding-top:48px;padding-bottom:80px;}
+
+    .page{max-width:640px;margin:0 auto;padding:var(--s4);}
+
+    /* Hero */
+    .help-hero{text-align:center;padding:var(--s5) var(--s4) var(--s4);margin-bottom:var(--s4);}
+    .help-hero-icon{width:56px;height:56px;background:var(--text);color:var(--text-inv);border-radius:var(--r-lg);display:flex;align-items:center;justify-content:center;margin:0 auto var(--s3);}
+    .help-hero-title{font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800;color:var(--text);margin-bottom:var(--s2);}
+    .help-hero-sub{font-size:.85rem;color:var(--text-3);line-height:1.6;max-width:400px;margin:0 auto;}
+
+    /* Search (déco) */
+    .search-box{display:flex;align-items:center;gap:var(--s2);background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-lg);padding:var(--s3) var(--s4);margin-bottom:var(--s5);cursor:text;}
+    .search-box input{flex:1;background:transparent;border:none;outline:none;font-size:.88rem;color:var(--text);}
+    .search-box input::placeholder{color:var(--text-3);}
+
+    /* Section */
+    .help-section{margin-bottom:var(--s6);}
+    .help-section-title{font-family:'Syne',sans-serif;font-size:.92rem;font-weight:800;color:var(--text);margin-bottom:var(--s3);display:flex;align-items:center;gap:var(--s2);}
+    .help-section-icon{width:28px;height:28px;border-radius:var(--r-sm);background:var(--bg-3);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+
+    /* FAQ accordion */
+    .faq-item{background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-md);margin-bottom:var(--s2);overflow:hidden;transition:border-color .15s;}
+    .faq-item:hover{border-color:var(--text-3);}
+    .faq-q{display:flex;align-items:center;justify-content:space-between;padding:var(--s3) var(--s4);cursor:pointer;user-select:none;}
+    .faq-q-text{font-size:.85rem;font-weight:600;color:var(--text);flex:1;}
+    .faq-arrow{color:var(--text-3);transition:transform .2s ease;flex-shrink:0;}
+    .faq-item.open .faq-arrow{transform:rotate(180deg);}
+    .faq-a{display:none;padding:0 var(--s4) var(--s4);font-size:.82rem;color:var(--text-2);line-height:1.65;}
+    .faq-item.open .faq-a{display:block;}
+    .faq-a strong{color:var(--text);}
+    .faq-a code{font-family:'DM Mono',monospace;font-size:.78rem;background:var(--bg-3);padding:1px 6px;border-radius:4px;color:var(--text-2);}
+
+    /* Info cards */
+    .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--s3);}
+    @media(max-width:480px){.info-grid{grid-template-columns:1fr;}}
+    .info-card{background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-lg);padding:var(--s4);}
+    .info-card-icon{font-size:1.5rem;margin-bottom:var(--s2);}
+    .info-card-title{font-size:.82rem;font-weight:700;color:var(--text);margin-bottom:4px;}
+    .info-card-desc{font-size:.75rem;color:var(--text-3);line-height:1.5;}
+
+    /* Step list */
+    .steps{display:flex;flex-direction:column;gap:var(--s3);}
+    .step{display:flex;gap:var(--s3);align-items:flex-start;}
+    .step-num{width:26px;height:26px;border-radius:50%;background:var(--text);color:var(--text-inv);font-size:.72rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+    .step-body{flex:1;}
+    .step-title{font-size:.85rem;font-weight:700;color:var(--text);margin-bottom:2px;}
+    .step-desc{font-size:.78rem;color:var(--text-3);line-height:1.5;}
+
+    /* Contact */
+    .contact-card{background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-xl);padding:var(--s5);text-align:center;}
+    .contact-title{font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;color:var(--text);margin-bottom:var(--s2);}
+    .contact-sub{font-size:.8rem;color:var(--text-3);margin-bottom:var(--s4);line-height:1.5;}
+    .contact-devs{display:flex;gap:var(--s3);justify-content:center;margin-bottom:var(--s4);}
+    .dev-av{width:42px;height:42px;border-radius:50%;background:var(--text);color:var(--text-inv);font-family:'Syne',sans-serif;font-weight:800;font-size:.9rem;display:flex;align-items:center;justify-content:center;}
+    .dev-info{text-align:left;}
+    .dev-name{font-size:.82rem;font-weight:700;color:var(--text);}
+    .dev-role{font-size:.68rem;color:var(--green);font-family:'DM Mono',monospace;}
+
+    /* Table tarifs */
+    .tarif-table{width:100%;border-collapse:collapse;}
+    .tarif-table th{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);padding:var(--s2) var(--s3);text-align:left;border-bottom:1px solid var(--border-2);}
+    .tarif-table td{font-size:.82rem;color:var(--text-2);padding:var(--s2) var(--s3);border-bottom:1px solid var(--border);}
+    .tarif-table tr:last-child td{border-bottom:none;}
+    .tarif-table td:last-child{font-family:'DM Mono',monospace;font-weight:700;color:var(--text);text-align:right;}
+  </style>
+</head>
+<body>
+<script src="/js/ui.js"></script>
+
+
+
+<div class="page">
+
+  <div class="help-hero">
+    <div class="help-hero-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+    </div>
+    <div class="help-hero-title">Centre d'aide Krinyx</div>
+    <div class="help-hero-sub">Tout ce que tu dois savoir pour utiliser Krinyx — bots, crédits, panels, formations et plus.</div>
+  </div>
+
+  <!-- Cards rapides -->
+  <div class="info-grid" style="margin-bottom:var(--s6);">
+    <div class="info-card">
+      <div class="info-card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+      <div class="info-card-title">Démarrage rapide</div>
+      <div class="info-card-desc">Inscris-toi, reçois 50 CR, déploie ton premier bot en moins de 2 minutes.</div>
+    </div>
+    <div class="info-card">
+      <div class="info-card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg></div>
+      <div class="info-card-title">Crédits (CR)</div>
+      <div class="info-card-desc">100 CR = 1 500 FCFA. Utilisés pour les bots, panels, design et services.</div>
+    </div>
+    <div class="info-card">
+      <div class="info-card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="10" x="3" y="11" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" x2="8" y1="16" y2="16"/><line x1="16" x2="16" y1="16" y2="16"/></svg></div>
+      <div class="info-card-title">6 Bots disponibles</div>
+      <div class="info-card-desc">ROK-XD, KNUT XMD, HADES, RAIZEL, KRATOS, KYRO — tous sur WhatsApp.</div>
+    </div>
+    <div class="info-card">
+      <div class="info-card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg></div>
+      <div class="info-card-title">Panels d'hébergement</div>
+      <div class="info-card-desc">Héberge ton bot 24h/24 sur un serveur dédié avec accès Pterodactyl.</div>
+    </div>
+  </div>
+
+  <!-- ── COMPRENDRE KRINYX ── -->
+  <div class="help-section">
+    <div class="help-section-title">
+      <div class="help-section-icon"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></div>
+      Comprendre Krinyx
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        <span class="faq-q-text">C'est quoi Krinyx ?</span>
+        <svg class="faq-arrow" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="faq-a">
+        Krinyx est une plateforme tout-en-un créée par <strong>Dev Raizel & Dev Knut</strong> qui permet de déployer et gérer des bots WhatsApp sans aucune compétence technique. Tu peux aussi acheter des panels d'hébergement, accéder à des formations, des services de design et télécharger les bases de bots pour créer le tien.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        <span class="faq-q-text">Qu'est-ce qu'un crédit (CR) ?</span>
+        <svg class="faq-arrow" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="faq-a">
+        Les <strong>Crédits (CR)</strong> sont la monnaie interne de Krinyx. <strong>100 CR = 1 500 FCFA</strong>. Ils servent à payer toutes les actions sur la plateforme : déploiement de bots, achat de panels, services de design, base bot, etc. Tu reçois <strong>50 CR offerts</strong> à l'inscription. Tu peux en recharger à tout moment via Wave, Orange Money ou MTN MoMo.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        <span class="faq-q-text">Comment recharger mes crédits ?</span>
+        <svg class="faq-arrow" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="faq-a">
+        Va dans <strong>Recharger</strong> (icône porte-monnaie en haut de chaque page ou bouton <code>+</code>). Entre le montant dans ta devise locale — le système détecte automatiquement ta monnaie. Effectue le paiement sur le numéro indiqué (Wave/OM/MTN), puis clique sur <strong>Confirmer la demande</strong>. Un administrateur validera et créditera ton compte dans les 24h.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        <span class="faq-q-text">L'offre Premium, c'est quoi ?</span>
+        <svg class="faq-arrow" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="faq-a">
+        L'offre Premium à <strong>267 CR</strong> pour 32 jours (30 jours + 2 jours offerts) donne accès à tous les bots sans payer à l'unité. C'est l'offre la plus rentable si tu utilises plusieurs bots régulièrement.
+      </div>
+    </div>
+  </div>
+
+  <!-- ── BOTS WHATSAPP ── -->
+  <div class="help-section">
+    <div class="help-section-title">
+      <div class="help-section-icon"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="10" x="3" y="11" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/></svg></div>
+      Bots WhatsApp
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        <span class="faq-q-text">Comment déployer un bot ?</span>
+        <svg class="faq-arrow" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="faq-a">
+        <div style="margin-bottom:var(--s3);">Suis ces étapes :</div>
+        <div class="steps">
+          <div class="step"><div class="step-num">1</div><div class="step-body"><div class="step-title">Choisir le bot</div><div class="step-desc">Va sur <strong>Déployer un bot</strong> et sélectionne le bot qui t'intéresse parmi les 6 disponibles.</div></div></div>
+          <div class="step"><div class="step-num">2</div><div class="step-body"><div class="step-title">Choisir la durée</div><div class="step-desc">Sélectionne 24h, 48h, 1 Semaine ou 1 Mois selon ton budget.</div></div></div>
+          <div class="step"><div class="step-num">3</div><div class="step-body"><div class="step-title">Générer le code de pairing</div><div class="step-desc">Entre ton numéro WhatsApp au format international (ex: <code>2376XXXXXXXX</code>). Un code à 8 chiffres est généré.</div></div></div>
+          <div class="step"><div class="step-num">4</div><div class="step-body"><div class="step-title">Entrer le code dans WhatsApp</div><div class="step-desc">Sur WhatsApp → Appareils liés → Lier un appareil → Entre le code. Le bot se connecte en quelques secondes.</div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        <span class="faq-q-text">Quels sont les 6 bots disponibles ?</span>
+        <svg class="faq-arrow" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="faq-a">
+        <table class="tarif-table">
+          <tr><th>Bot</th><th>Créateur</th><th>Points forts</th><th>24h</th><th>48h</th><th>1 Sem</th><th>1 Mois</th></tr>
+          <tr><td><strong>ROK-XD</strong></td><td>Raizel & Knut</td><td>Téléchargements, stickers, météo</td><td>7 CR</td><td>10 CR</td><td>33 CR</td><td>100 CR</td></tr>
+          <tr><td><strong>KNUT XMD</strong></td><td>Knut</td><td>GPT, Gemini, anti-spam, 150+ cmds</td><td>10 CR</td><td>17 CR</td><td>53 CR</td><td>167 CR</td></tr>
+          <tr><td><strong>HADES XMD</strong></td><td>Raizel & Knut</td><td>Bugs, effets, protection</td><td>10 CR</td><td>17 CR</td><td>53 CR</td><td>167 CR</td></tr>
+          <tr><td><strong>RAIZEL XMD</strong></td><td>Dev Raizel</td><td>Bugs, anti-delete, TTS, autoreact</td><td>10 CR</td><td>17 CR</td><td>53 CR</td><td>167 CR</td></tr>
+          <tr><td><strong>KRATOS XMD</strong></td><td>Dev Raizel</td><td>Bugs avancés, freeze, vortex</td><td>5 CR</td><td>8 CR</td><td>20 CR</td><td>107 CR</td></tr>
+          <tr><td><strong>KYRO XMD</strong></td><td>DEV HACKER</td><td>Antiraid, warn, XP, IA, 60+ cmds</td><td>5 CR</td><td>8 CR</td><td>20 CR</td><td>67 CR</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        <span class="faq-q-text">Le bot se déconnecte après combien de temps ?</span>
+        <svg class="faq-arrow" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="faq-a">
+        Le bot reste connecté pendant toute la durée de ton accès (24h, 48h, 1 semaine ou 1 mois). Tu peux <strong>le déconnecter et le reconnecter autant de fois que tu veux</strong> pendant cette période. À l'expiration, le bot t'envoie un message d'avertissement avant de se déconnecter automatiquement. Il te suffit de renouveler l'accès pour le relancer.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        <span class="faq-q-text">Comment utiliser les commandes du bot ?</span>
+        <svg class="faq-arrow" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="faq-a">
+        Envoie <code>.menu</code> dans ton WhatsApp (ou un message privé au bot) pour voir la liste complète des commandes. Le préfixe par défaut est <code>.</code> — tu peux le modifier lors du déploiement. <strong>Note :</strong> KNUT XMD fonctionne sans préfixe (mode sans préfixe activé par défaut).
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        <span class="faq-q-text">Qu'est-ce que la Base Bot ?</span>
+        <svg class="faq-arrow" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="faq-a">
+        La <strong>Base Bot</strong> (200 CR) est un pack de fichiers sources qui te permet de créer et personnaliser ton propre bot WhatsApp XMD from scratch. Tu obtiens l'architecture complète, les fichiers de base, la structure des commandes et un guide d'installation. Idéal si tu veux apprendre à développer ou lancer ton propre bot.
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PANELS ── -->
+  <div class="help-section">
+    <div class="help-section-title">
+      <div class="help-section-icon"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg></div>
+      Panels d'hébergement
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        <span class="faq-q-text">C'est quoi un panel Pterodactyl ?</span>
+        <svg class="faq-arrow" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="faq-a">
+        Pterodactyl est un panneau de gestion de serveurs. Avec ton panel Krinyx, tu obtiens un accès à un serveur hébergé sur nos machines pour faire tourner ton bot <strong>24h/24, 7j/7</strong> sans avoir besoin de laisser ton ordinateur allumé. Tu reçois un URL, un nom d'utilisateur et un mot de passe pour accéder à ton espace.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        <span class="faq-q-text">Quels sont les plans disponibles ?</span>
+        <svg class="faq-arrow" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="faq-a">
+        <table class="tarif-table">
+          <tr><th>Plan</th><th>RAM</th><th>Disk</th><th>CPU</th><th>Prix</th></tr>
+          <tr><td><strong>Starter</strong></td><td>512 MB</td><td>1 Go</td><td>50%</td><td>7 CR / 24h</td></tr>
+          <tr><td><strong>Pro</strong></td><td>1 Go</td><td>2 Go</td><td>100%</td><td>10 CR / 48h</td></tr>
+          <tr><td><strong>Semaine</strong></td><td>1 Go</td><td>2 Go</td><td>100%</td><td>33 CR / 7j</td></tr>
+          <tr><td><strong>Mensuel</strong></td><td>2 Go</td><td>5 Go</td><td>200%</td><td>100 CR / 30j</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── NOTIFICATIONS INBOX ── -->
+  <div class="help-section">
+    <div class="help-section-title">
+      <div class="help-section-icon"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
+      Notifications &amp; Inbox
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        <span class="faq-q-text">À quoi sert la boîte de réception ?</span>
+        <svg class="faq-arrow" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="faq-a">
+        L'inbox te tient informé de tout ce qui se passe sur ton compte : <strong>confirmations d'achats</strong>, <strong>alertes d'expiration de bot</strong>, <strong>validations de recharge</strong>, <strong>annonces des admins</strong> et messages personnalisés. Un point rouge sur la cloche signifie que tu as des messages non lus.
+      </div>
+    </div>
+  </div>
+
+  <!-- ── LANGUE & THÈME ── -->
+  <div class="help-section">
+    <div class="help-section-title">
+      <div class="help-section-icon"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><path d="M2 12h20"/></svg></div>
+      Interface — Langue &amp; Thème
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        <span class="faq-q-text">Comment changer la langue ?</span>
+        <svg class="faq-arrow" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="faq-a">
+        Dans la topbar (barre supérieure), clique sur <strong>FR</strong> ou <strong>EN</strong>. Le changement s'applique instantanément à toutes les pages du site, et ton choix est sauvegardé automatiquement.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        <span class="faq-q-text">Comment passer en mode clair (light mode) ?</span>
+        <svg class="faq-arrow" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="faq-a">
+        Clique sur l'icône soleil/lune dans la topbar. Le thème change sur toutes les pages — fond, textes, cartes et navigation. Ton choix est mémorisé même après fermeture du navigateur.
+      </div>
+    </div>
+  </div>
+
+  <!-- ── FORMATIONS & DESIGN ── -->
+  <div class="help-section">
+    <div class="help-section-title">
+      <div class="help-section-icon"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
+      Formations &amp; Design
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        <span class="faq-q-text">Les formations sont-elles payantes ?</span>
+        <svg class="faq-arrow" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="faq-a">
+        L'accès au <strong>catalogue des formations est gratuit</strong>. Tu peux consulter toutes les formations disponibles (développement, bots, IA, graphisme, etc.) sans dépenser de crédits. Pour t'inscrire à une formation spécifique, contacte l'équipe via WhatsApp depuis la page formation.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        <span class="faq-q-text">Comment fonctionne le service Design UI ?</span>
+        <svg class="faq-arrow" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="faq-a">
+        Le service <strong>Design UI</strong> te met directement en contact avec l'équipe Krinyx sur WhatsApp pour discuter de ta demande graphique : flyers, affiches, interface d'application, identité visuelle, montage vidéo, etc. Clique sur "Design UI" dans les services — WhatsApp s'ouvre automatiquement avec un message pré-rédigé.
+      </div>
+    </div>
+  </div>
+
+  <!-- Contact -->
+  <div class="contact-card">
+    <div class="contact-title">Besoin d'aide personnalisée ?</div>
+    <div class="contact-sub">L'équipe Krinyx est disponible sur WhatsApp pour répondre à toutes tes questions.</div>
+    <div class="contact-devs">
+      <div style="display:flex;align-items:center;gap:var(--s2);">
+        <div class="dev-av">KN</div>
+        <div class="dev-info"><div class="dev-name">Dev Knut</div><div class="dev-role"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);margin-right:3px;"></span> En ligne</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:var(--s2);">
+        <div class="dev-av">RA</div>
+        <div class="dev-info"><div class="dev-name">Dev Raizel</div><div class="dev-role"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);margin-right:3px;"></span> En ligne</div></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:var(--s2);justify-content:center;flex-wrap:wrap;">
+      <a href="https://wa.me/237673941535" target="_blank" class="btn btn-primary" style="display:inline-flex;align-items:center;gap:6px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="20" x="5" y="2" rx="2"/><path d="M12 18h.01"/></svg>
+        Contacter sur WhatsApp
+      </a>
+      <a href="/support" class="btn btn-secondary" style="display:inline-flex;align-items:center;gap:8px;font-size:1rem;font-weight:800;padding:.75rem 1.5rem;border-radius:var(--r-lg);">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Contact Support
+      </a>
+    </div>
+  </div>
+
+</div>
+
+<nav class="bottom-nav">
+  <div class="bn-item" onclick="location.href='/dashboard'">
+    <span class="bn-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></span><span>Accueil</span>
+  </div>
+  <div class="bn-item active">
+    <span class="bn-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg></span><span>Aide</span>
+  </div>
+  <div class="bn-item" onclick="location.href='/support'">
+    <span class="bn-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span><span>Support</span>
+  </div>
+</nav>
+
+<script>
+function toggleFaq(btn) {
+  const item = btn.closest('.faq-item');
+  const wasOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item.open').forEach(el => el.classList.remove('open'));
+  if (!wasOpen) item.classList.add('open');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  injectTopbar('/dashboard');
+  ThemeManager.init();
+  i18n.init();
+  initScrollNav();
+});
+</script>
+</body>
+</html>

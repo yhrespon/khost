@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <title>Krinyx | Bots</title>
+  <script>(function(){var t=localStorage.getItem("krinyx_theme")||"dark";document.documentElement.setAttribute("data-theme",t);})()</script>
+  <link rel="stylesheet" href="/theme_/theme.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&display=swap" rel="stylesheet"/>
+  <style>
+    html,body{height:100%;overflow:hidden;background:var(--bg);transition:background var(--t-mid);}
+    .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);z-index:600;opacity:0;transition:all .25s var(--ease);background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-full);padding:.5rem 1.25rem;font-size:.85rem;font-weight:500;white-space:nowrap;box-shadow:var(--shadow-lg);pointer-events:none;}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+    @media(min-width:700px){.toast{bottom:20px;}}
+
+    /* Cards */
+    .bots-grid{display:flex;flex-direction:column;gap:var(--s4);}
+    .bot-card{background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-lg);overflow:hidden;transition:border-color var(--t-fast),box-shadow var(--t-fast);}
+    .bot-card:hover{border-color:var(--text-3);box-shadow:var(--shadow-md);}
+    .bot-card-inner{display:flex;align-items:flex-start;gap:var(--s4);padding:var(--s4) var(--s4) var(--s3);}
+    .bot-avatar{width:80px;height:80px;border-radius:var(--r-md);object-fit:cover;flex-shrink:0;border:1px solid var(--border-2);background:var(--bg-3);}
+    .bot-avatar-fallback{width:80px;height:80px;border-radius:var(--r-md);flex-shrink:0;background:var(--bg-3);border:1px solid var(--border-2);display:flex;align-items:center;justify-content:center;color:var(--text-3);}
+    .bot-info{flex:1;min-width:0;}
+    .bot-name{font-size:1.15rem;font-weight:900;margin-bottom:3px;color:var(--text);letter-spacing:-.01em;}
+    .bot-creator{font-size:.6rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3);font-family:var(--font-mono);margin-bottom:3px;}
+    .bot-plat{display:inline-flex;align-items:center;gap:4px;font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-3);margin-bottom:var(--s2);}
+    .bot-desc{font-size:.8rem;color:var(--text-2);line-height:1.55;}
+    .bot-tags{display:flex;flex-wrap:wrap;gap:var(--s1);padding:0 var(--s4) var(--s2);}
+    .bot-tag{font-size:.65rem;font-weight:600;font-family:var(--font-mono);padding:2px 8px;border-radius:var(--r-full);background:var(--bg-3);border:1px solid var(--border-2);color:var(--text-2);}
+
+    /* Validity banner */
+    .validity-banner{margin:0 var(--s4) var(--s3);padding:var(--s2) var(--s3);border-radius:var(--r-md);font-size:.75rem;font-weight:600;display:flex;align-items:center;gap:6px;}
+    .validity-active{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);color:var(--green);}
+    .validity-expired{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);color:var(--red);}
+
+    /* Duration selector */
+    .duration-section{padding:0 var(--s4) var(--s3);}
+    .duration-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);margin-bottom:var(--s2);display:flex;align-items:center;gap:5px;}
+    .duration-row{display:flex;gap:var(--s2);flex-wrap:wrap;}
+    .dur-btn{font-size:.72rem;font-weight:600;font-family:var(--font-mono);padding:6px 12px;border-radius:var(--r-full);border:1px solid var(--border-2);background:var(--bg-3);color:var(--text-2);cursor:pointer;transition:all var(--t-fast);white-space:nowrap;line-height:1;}
+    .dur-btn:hover{border-color:var(--text-3);color:var(--text);}
+    .dur-btn.active{background:var(--text);color:var(--text-inv);border-color:var(--text);}
+
+    /* Footer */
+    .bot-footer{display:flex;align-items:center;justify-content:space-between;padding:var(--s3) var(--s4);border-top:1px solid var(--border-2);background:transparent;gap:var(--s2);}
+    .bot-status-dot{display:flex;align-items:center;gap:6px;font-size:.72rem;font-family:var(--font-mono);color:var(--green);font-weight:700;letter-spacing:.02em;}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+    .dot-live{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;}
+
+    /* Overlay déploiement */
+    .deploy-overlay{position:fixed;inset:0;z-index:999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--s4);}
+    .deploy-overlay.hidden{display:none;}
+
+    /* ── MODAL DÉPLOIEMENT (plein écran, style sketch) ── */
+    .offer-overlay{
+      position:fixed;inset:0;z-index:998;
+      background:var(--bg);
+      display:flex;flex-direction:column;align-items:center;
+      overflow-y:auto;
+      padding:var(--s5) var(--s4) var(--s7);
+      animation:slideUp .3s var(--ease);
+    }
+    .offer-overlay.hidden{display:none;}
+    @keyframes slideUp{from{opacity:0;transform:translateY(32px)}to{opacity:1;transform:none}}
+
+    /* Logo en haut */
+    .offer-header{
+      display:flex;flex-direction:column;align-items:center;
+      gap:var(--s2);margin-bottom:var(--s5);width:100%;
+    }
+    .offer-logo-img{
+      width:72px;height:72px;border-radius:var(--r-lg);
+      object-fit:cover;border:2px solid var(--border-2);
+      box-shadow:var(--shadow-md);
+    }
+    .offer-logo-brand{
+      font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;
+      letter-spacing:.12em;text-transform:uppercase;color:var(--text);
+    }
+    .offer-page-title{
+      font-size:1.5rem;font-weight:900;color:var(--text);
+      letter-spacing:-.02em;margin-top:var(--s2);
+    }
+
+    /* Carte bot */
+    .offer-bot-card{
+      width:100%;max-width:420px;
+      background:var(--surface);border:1px solid var(--border-2);
+      border-radius:var(--r-xl);padding:var(--s4);
+      display:flex;align-items:center;gap:var(--s4);
+      margin-bottom:var(--s5);
+      box-shadow:var(--shadow-sm);
+    }
+    .offer-bot-photo{
+      width:64px;height:64px;border-radius:var(--r-md);
+      object-fit:cover;border:1px solid var(--border-2);
+      flex-shrink:0;background:var(--bg-3);
+    }
+    .offer-bot-info{display:flex;flex-direction:column;gap:3px;}
+    .offer-bot-name{font-size:1.1rem;font-weight:900;color:var(--text);letter-spacing:-.01em;}
+    .offer-bot-sub{font-size:.72rem;color:var(--text-3);font-family:var(--font-mono);font-weight:600;letter-spacing:.04em;text-transform:uppercase;}
+
+    /* Plans tarif */
+    .offer-plans{
+      display:flex;flex-direction:column;gap:var(--s2);
+      width:100%;max-width:420px;margin-bottom:var(--s5);
+    }
+    .offer-plan{
+      width:100%;padding:var(--s3) var(--s4);
+      background:var(--bg-2);border:2px solid var(--border-2);
+      border-radius:var(--r-full);cursor:pointer;
+      transition:all var(--t-fast);
+      display:flex;align-items:center;justify-content:space-between;
+    }
+    .offer-plan:hover{border-color:var(--text-3);background:var(--bg-3);}
+    .offer-plan.selected{
+      background:var(--text);border-color:var(--text);
+    }
+    .offer-plan.selected .offer-plan-dur,
+    .offer-plan.selected .offer-plan-cr{ color:var(--text-inv); }
+    .offer-plan-dur{font-size:.9rem;font-weight:700;color:var(--text);}
+    .offer-plan-cr{font-size:.9rem;font-weight:800;font-family:var(--font-mono);color:var(--text);}
+
+    /* Boutons action */
+    .offer-actions{
+      display:flex;flex-direction:column;gap:var(--s2);
+      width:100%;max-width:420px;
+    }
+
+    /* Premium card */
+    .premium-card{background:var(--surface);border:2px solid var(--border-2);border-radius:var(--r-lg);overflow:hidden;position:relative;margin-bottom:var(--s2);}
+    .premium-badge{position:absolute;top:var(--s3);right:var(--s3);font-size:.62rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase;padding:3px 10px;border-radius:var(--r-full);background:var(--text);color:var(--text-inv);}
+    .premium-inner{padding:var(--s5);}
+    .premium-title{font-size:1.1rem;font-weight:800;margin-bottom:4px;color:var(--text);}
+    .premium-price{font-size:1.7rem;font-weight:800;font-family:var(--font-mono);color:var(--text);margin:var(--s2) 0 4px;}
+    .premium-sub{font-size:.75rem;color:var(--text-3);margin-bottom:var(--s4);}
+    .premium-features{display:flex;flex-direction:column;gap:var(--s2);margin-bottom:var(--s4);}
+    .premium-feat{display:flex;align-items:center;gap:var(--s2);font-size:.82rem;color:var(--text-2);}
+    .feat-check{color:var(--green);flex-shrink:0;}
+
+    /* Solde card */
+    .solde-card{background:var(--bg-2);border:2px solid var(--border-2);border-radius:var(--r-md);padding:var(--s3) var(--s4);display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--s5);}
+  </style>
+</head>
+<body>
+<script src="/js/ui.js"></script>
+<script src="/js/services-guard.js"></script>
+<div class="toast" id="toast"></div>
+
+<!-- Overlay déploiement -->
+<div class="deploy-overlay hidden" id="deploy-overlay">
+  <div class="dh-spin dh-spin-lg"><img src="/logo.jpg" alt="" style="width:100%;height:100%;object-fit:cover;"/></div>
+  <div style="font-size:1.2rem;font-weight:800;color:var(--text);" id="deploy-bot-name">Bot</div>
+  <div style="font-size:.88rem;font-weight:600;color:var(--text-2);">Déploiement en cours…</div>
+  <div style="font-size:.78rem;color:var(--text-3);font-family:var(--font-mono);" id="deploy-cr-info"></div>
+</div>
+
+<!-- Modal sélection offre — plein écran style sketch -->
+<div class="offer-overlay hidden" id="offer-overlay">
+
+  <!-- Logo Krinyx en haut -->
+  <div class="offer-header">
+    <img class="offer-logo-img" src="/logo.jpg" alt="Krinyx" onerror="this.style.display='none'"/>
+    <span class="offer-logo-brand">Krinyx</span>
+    <div class="offer-page-title">Déploiement</div>
+  </div>
+
+  <!-- Carte bot -->
+  <div class="offer-bot-card">
+    <img id="offer-bot-img" class="offer-bot-photo" src="" alt="" onerror="this.style.display='none'"/>
+    <div class="offer-bot-info">
+      <div class="offer-bot-name" id="offer-title">Bot</div>
+      <div class="offer-bot-sub" id="offer-sub">WhatsApp</div>
+    </div>
+  </div>
+
+  <!-- Plans tarif -->
+  <div class="offer-plans" id="offer-plans"></div>
+
+  <!-- Boutons -->
+  <div class="offer-actions">
+    <button class="btn btn-primary btn-full" id="offer-confirm" style="border-radius:var(--r-full);padding:var(--s3) var(--s4);font-size:.95rem;font-weight:800;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      Déployer
+    </button>
+    <button class="btn btn-ghost btn-full" onclick="closeOfferModal()" style="border-radius:var(--r-full);padding:var(--s3) var(--s4);font-size:.88rem;font-weight:600;color:var(--text-3);border:1px solid var(--border-2);">
+      Annuler
+    </button>
+  </div>
+
+</div>
+
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sb-section">
+    <span class="sb-label">Navigation</span>
+    <div class="sb-item active">
+      <span class="sb-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="10" x="3" y="11" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/></svg></span>Déploiement
+    </div>
+  </div>
+</aside>
+
+<!-- CONTENU -->
+<main class="main-content" id="main" style="overflow-y:auto;top:48px;">
+  <div style="padding:var(--s4);max-width:560px;margin:0 auto;">
+
+    <div style="margin-bottom:var(--s4);">
+      <div style="font-size:1.3rem;font-weight:800;margin-bottom:4px;color:var(--text);">Déployer un bot</div>
+      <div style="font-size:.82rem;color:var(--text-2);">Choisis ton bot, sélectionne la durée et déploie.</div>
+    </div>
+
+    <!-- Solde -->
+    <div class="solde-card">
+      <span style="font-size:.8rem;color:var(--text-2);font-weight:600;">Votre solde</span>
+      <span style="font-size:1rem;font-weight:800;font-family:var(--font-mono);color:var(--text);display:flex;align-items:center;gap:5px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        <span id="user-credits">0</span> CR
+      </span>
+    </div>
+
+    <!-- BOTS GRID -->
+    <div class="bots-grid">
+
+      <!-- ROK-XD -->
+      <div class="bot-card" data-bot="rokxd">
+        <div class="bot-card-inner">
+          <img class="bot-avatar" src="/rokxd/rok.jpg" alt="ROK-XD" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
+          <div class="bot-avatar-fallback" style="display:none;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="10" x="3" y="11" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/></svg></div>
+          <div class="bot-info">
+            <div class="bot-name">ROK-XD</div>
+            <div class="bot-creator">par RAIZEL &amp; KNUT</div>
+            <div class="bot-plat"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="20" x="5" y="2" rx="2"/><path d="M12 18h.01"/></svg> WhatsApp</div>
+            <div class="bot-desc">Téléchargements, groupes, stickers, météo, news et 30+ commandes.</div>
+          </div>
+        </div>
+        <div class="bot-tags"><span class="bot-tag">tiktok</span><span class="bot-tag">sticker</span><span class="bot-tag">tagall</span><span class="bot-tag">kick</span><span class="bot-tag">weather</span><span class="bot-tag">+25 cmds</span></div>
+        <div class="validity-banner" id="validity-rokxd" style="display:none;"></div>
+        <div class="duration-section" id="dur-section-rokxd">
+          <div class="duration-label">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Veuillez choisir la validité
+          </div>
+          <div class="duration-row" data-bot="rokxd">
+            <button class="dur-btn active" data-idx="0">24H — 7 CR</button>
+            <button class="dur-btn" data-idx="1">48H — 10 CR</button>
+            <button class="dur-btn" data-idx="2">1 Semaine — 33 CR</button>
+            <button class="dur-btn" data-idx="3">1 Mois — 100 CR</button>
+          </div>
+        </div>
+        <div class="bot-footer">
+          <div style="display:flex;align-items:center;gap:var(--s3);">
+            <div class="bot-status-dot"><div class="dot-live"></div>EN LIGNE</div>
+          </div>
+          <button id="deploy-btn-rokxd" class="btn btn-primary btn-sm" onclick="openDeployModal('ROK-XD','rokxd','/pair')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Déployer
+          </button>
+        </div>
+      </div>
+
+      <!-- KNUT XMD -->
+      <div class="bot-card" data-bot="knutxmd">
+        <div class="bot-card-inner">
+          <img class="bot-avatar" src="/knutxmd/knut.jpg" alt="KNUT XMD" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
+          <div class="bot-avatar-fallback" style="display:none;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="10" x="3" y="11" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/></svg></div>
+          <div class="bot-info">
+            <div class="bot-name">KNUT XMD V4</div>
+            <div class="bot-creator">par KNUT</div>
+            <div class="bot-plat"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="20" x="5" y="2" rx="2"/><path d="M12 18h.01"/></svg> WhatsApp</div>
+            <div class="bot-desc">IA (GPT, Gemini, Deepseek), sécurité groupes, anti-spam, anime, 150+ commandes.</div>
+          </div>
+        </div>
+        <div class="bot-tags"><span class="bot-tag">gpt</span><span class="bot-tag">gemini</span><span class="bot-tag">deepseek</span><span class="bot-tag">antilink</span><span class="bot-tag">antispam</span><span class="bot-tag">+140 cmds</span></div>
+        <div class="validity-banner" id="validity-knutxmd" style="display:none;"></div>
+        <div class="duration-section" id="dur-section-knutxmd">
+          <div class="duration-label">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Veuillez choisir la validité
+          </div>
+          <div class="duration-row" data-bot="knutxmd">
+            <button class="dur-btn active" data-idx="0">24H — 10 CR</button>
+            <button class="dur-btn" data-idx="1">48H — 17 CR</button>
+            <button class="dur-btn" data-idx="2">1 Semaine — 53 CR</button>
+            <button class="dur-btn" data-idx="3">1 Mois — 167 CR</button>
+          </div>
+        </div>
+        <div class="bot-footer">
+          <div style="display:flex;align-items:center;gap:var(--s3);">
+            <div class="bot-status-dot"><div class="dot-live"></div>EN LIGNE</div>
+          </div>
+          <button id="deploy-btn-knutxmd" class="btn btn-primary btn-sm" onclick="openDeployModal('KNUT XMD V4','knutxmd','/knut')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Déployer
+          </button>
+        </div>
+      </div>
+
+      <!-- HADES XMD -->
+      <div class="bot-card" data-bot="hadesxmd">
+        <div class="bot-card-inner">
+          <img class="bot-avatar" src="/hadesxmd/hades.jpg" alt="HADES XMD" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
+          <div class="bot-avatar-fallback" style="display:none;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="10" x="3" y="11" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/></svg></div>
+          <div class="bot-info">
+            <div class="bot-name">HADES XMD</div>
+            <div class="bot-creator">par RAIZEL &amp; KNUT</div>
+            <div class="bot-plat"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="20" x="5" y="2" rx="2"/><path d="M12 18h.01"/></svg> WhatsApp</div>
+            <div class="bot-desc">Bugs, effets visuels, protection, médias et 60+ commandes premium.</div>
+          </div>
+        </div>
+        <div class="bot-tags"><span class="bot-tag">bug</span><span class="bot-tag">sticker</span><span class="bot-tag">tagall</span><span class="bot-tag">antilink</span><span class="bot-tag">welcome</span><span class="bot-tag">+55 cmds</span></div>
+        <div class="validity-banner" id="validity-hadesxmd" style="display:none;"></div>
+        <div class="duration-section" id="dur-section-hadesxmd">
+          <div class="duration-label">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Veuillez choisir la validité
+          </div>
+          <div class="duration-row" data-bot="hadesxmd">
+            <button class="dur-btn active" data-idx="0">24H — 10 CR</button>
+            <button class="dur-btn" data-idx="1">48H — 17 CR</button>
+            <button class="dur-btn" data-idx="2">1 Semaine — 53 CR</button>
+            <button class="dur-btn" data-idx="3">1 Mois — 167 CR</button>
+          </div>
+        </div>
+        <div class="bot-footer">
+          <div style="display:flex;align-items:center;gap:var(--s3);">
+            <div class="bot-status-dot"><div class="dot-live"></div>EN LIGNE</div>
+          </div>
+          <button id="deploy-btn-hadesxmd" class="btn btn-primary btn-sm" onclick="openDeployModal('HADES XMD','hadesxmd','/hades')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Déployer
+          </button>
+        </div>
+      </div>
+
+      <!-- RAIZEL XMD -->
+      <div class="bot-card" data-bot="raizelxmd">
+        <div class="bot-card-inner">
+          <img class="bot-avatar" src="/raizelxmd/cover.jpg" alt="RAIZEL XMD" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
+          <div class="bot-avatar-fallback" style="display:none;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="10" x="3" y="11" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/></svg></div>
+          <div class="bot-info">
+            <div class="bot-name">RAIZEL XMD</div>
+            <div class="bot-creator">par DEV RAIZEL</div>
+            <div class="bot-plat"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="20" x="5" y="2" rx="2"/><path d="M12 18h.01"/></svg> WhatsApp</div>
+            <div class="bot-desc">Bugs, protection, anti-delete, autoreact, autorecording, TTS et 40+ commandes.</div>
+          </div>
+        </div>
+        <div class="bot-tags"><span class="bot-tag">bug</span><span class="bot-tag">vortex</span><span class="bot-tag">autoreact</span><span class="bot-tag">antidelete</span><span class="bot-tag">tts</span><span class="bot-tag">+40 cmds</span></div>
+        <div class="validity-banner" id="validity-raizelxmd" style="display:none;"></div>
+        <div class="duration-section" id="dur-section-raizelxmd">
+          <div class="duration-label">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Veuillez choisir la validité
+          </div>
+          <div class="duration-row" data-bot="raizelxmd">
+            <button class="dur-btn active" data-idx="0">24H — 10 CR</button>
+            <button class="dur-btn" data-idx="1">48H — 17 CR</button>
+            <button class="dur-btn" data-idx="2">1 Semaine — 53 CR</button>
+            <button class="dur-btn" data-idx="3">1 Mois — 167 CR</button>
+          </div>
+        </div>
+        <div class="bot-footer">
+          <div style="display:flex;align-items:center;gap:var(--s3);">
+            <div class="bot-status-dot"><div class="dot-live"></div>EN LIGNE</div>
+          </div>
+          <button id="deploy-btn-raizelxmd" class="btn btn-primary btn-sm" onclick="openDeployModal('RAIZEL XMD','raizelxmd','/raizel')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Déployer
+          </button>
+        </div>
+      </div>
+
+      <!-- KRATOS XMD -->
+      <div class="bot-card" data-bot="kratosxmd">
+        <div class="bot-card-inner">
+          <img class="bot-avatar" src="/kratosxmd/kratos.jpg" alt="KRATOS XMD" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
+          <div class="bot-avatar-fallback" style="display:none;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="10" x="3" y="11" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/></svg></div>
+          <div class="bot-info">
+            <div class="bot-name">KRATOS XMD</div>
+            <div class="bot-creator">par DEV RAIZEL</div>
+            <div class="bot-plat"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="20" x="5" y="2" rx="2"/><path d="M12 18h.01"/></svg> WhatsApp</div>
+            <div class="bot-desc">Bugs avancés — freeze, vortex, invisidelay, bloodfield, kratosx.</div>
+          </div>
+        </div>
+        <div class="bot-tags"><span class="bot-tag">freeze</span><span class="bot-tag">vortex</span><span class="bot-tag">bloodfield</span><span class="bot-tag">kratosx</span><span class="bot-tag">invisidelay</span><span class="bot-tag">bug</span></div>
+        <div class="validity-banner" id="validity-kratosxmd" style="display:none;"></div>
+        <div class="duration-section" id="dur-section-kratosxmd">
+          <div class="duration-label">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Veuillez choisir la validité
+          </div>
+          <div class="duration-row" data-bot="kratosxmd">
+            <button class="dur-btn active" data-idx="0">24H — 5 CR</button>
+            <button class="dur-btn" data-idx="1">48H — 8 CR</button>
+            <button class="dur-btn" data-idx="2">1 Semaine — 20 CR</button>
+            <button class="dur-btn" data-idx="3">1 Mois — 107 CR</button>
+          </div>
+        </div>
+        <div class="bot-footer">
+          <div style="display:flex;align-items:center;gap:var(--s3);">
+            <div class="bot-status-dot"><div class="dot-live"></div>EN LIGNE</div>
+          </div>
+          <button id="deploy-btn-kratosxmd" class="btn btn-primary btn-sm" onclick="openDeployModal('KRATOS XMD','kratosxmd','/kratos')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Déployer
+          </button>
+        </div>
+      </div>
+
+      <!-- KYRO XMD -->
+      <div class="bot-card" data-bot="kyroxmd">
+        <div class="bot-card-inner">
+          <img class="bot-avatar" src="/kyroxmd/kyro.jpg" alt="KYRO XMD V1" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
+          <div class="bot-avatar-fallback" style="display:none;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="10" x="3" y="11" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/></svg></div>
+          <div class="bot-info">
+            <div class="bot-name">KYRO XMD V1</div>
+            <div class="bot-creator">par DEV HACKER</div>
+            <div class="bot-plat"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="20" x="5" y="2" rx="2"/><path d="M12 18h.01"/></svg> WhatsApp</div>
+            <div class="bot-desc">Antiraid, warn, xp, IA, stickers, antikickall, gestion groupes et 60+ commandes.</div>
+          </div>
+        </div>
+        <div class="bot-tags"><span class="bot-tag">antiraid</span><span class="bot-tag">warn</span><span class="bot-tag">xp</span><span class="bot-tag">ai</span><span class="bot-tag">sticker</span><span class="bot-tag">antilink</span><span class="bot-tag">+55 cmds</span></div>
+        <div class="validity-banner" id="validity-kyroxmd" style="display:none;"></div>
+        <div class="duration-section" id="dur-section-kyroxmd">
+          <div class="duration-label">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Veuillez choisir la validité
+          </div>
+          <div class="duration-row" data-bot="kyroxmd">
+            <button class="dur-btn active" data-idx="0">24H — 5 CR</button>
+            <button class="dur-btn" data-idx="1">48H — 8 CR</button>
+            <button class="dur-btn" data-idx="2">1 Semaine — 20 CR</button>
+            <button class="dur-btn" data-idx="3">1 Mois — 67 CR</button>
+          </div>
+        </div>
+        <div class="bot-footer">
+          <div style="display:flex;align-items:center;gap:var(--s3);">
+            <div class="bot-status-dot"><div class="dot-live"></div>EN LIGNE</div>
+          </div>
+          <button id="deploy-btn-kyroxmd" class="btn btn-primary btn-sm" onclick="openDeployModal('KYRO XMD V1','kyroxmd','/kyro')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Déployer
+          </button>
+        </div>
+      </div>
+
+      <!-- SADEUS XMD -->
+      <div class="bot-card" data-bot="sadeusxmd">
+        <div class="bot-card-inner">
+          <img class="bot-avatar" src="/sadeusxmd/sadeus.jpg" alt="SADEUS XMD" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
+          <div class="bot-avatar-fallback" style="display:none;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="10" x="3" y="11" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/></svg></div>
+          <div class="bot-info">
+            <div class="bot-name">SADEUS XMD</div>
+            <div class="bot-creator">par DEV SADEUS</div>
+            <div class="bot-plat"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="20" x="5" y="2" rx="2"/><path d="M12 18h.01"/></svg> WhatsApp</div>
+            <div class="bot-desc">Ultra léger, multi-fonctions : IA, modération, téléchargements, jeux, économie, leveling et plus de 80 commandes.</div>
+          </div>
+        </div>
+        <div class="bot-tags">
+          <span class="bot-tag">ia</span>
+          <span class="bot-tag">modération</span>
+          <span class="bot-tag">téléchargement</span>
+          <span class="bot-tag">jeux</span>
+          <span class="bot-tag">économie</span>
+          <span class="bot-tag">leveling</span>
+          <span class="bot-tag">+80 cmds</span>
+        </div>
+        <div class="validity-banner" id="validity-sadeusxmd" style="display:none;"></div>
+        <div class="duration-section" id="dur-section-sadeusxmd">
+          <div class="duration-label">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Veuillez choisir la validité
+          </div>
+          <div class="duration-row" data-bot="sadeusxmd">
+            <button class="dur-btn active" data-idx="0">24H — 9 CR</button>
+            <button class="dur-btn" data-idx="1">48H — 15 CR</button>
+            <button class="dur-btn" data-idx="2">1 Semaine — 45 CR</button>
+            <button class="dur-btn" data-idx="3">1 Mois — 140 CR</button>
+          </div>
+        </div>
+        <div class="bot-footer">
+          <div style="display:flex;align-items:center;gap:var(--s3);">
+            <div class="bot-status-dot"><div class="dot-live"></div>EN LIGNE</div>
+          </div>
+          <button id="deploy-btn-sadeusxmd" class="btn btn-primary btn-sm" onclick="openDeployModal('SADEUS XMD','sadeusxmd','./pages/sadeus.html')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Déployer
+          </button>
+        </div>
+      </div>
+
+    </div><!-- end bots-grid -->
+
+    <!-- OFFRE PREMIUM — en dernier -->
+    <div style="margin-top:var(--s6);margin-bottom:var(--s3);">
+      <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-3);margin-bottom:var(--s3);">Offre spéciale</div>
+      <div class="premium-card" id="premium-card">
+        <span class="premium-badge">PREMIUM</span>
+        <div class="premium-inner">
+          <div class="premium-title">Accès Premium — Tous les bots</div>
+          <div class="premium-price" id="premium-price-display">267 <span style="font-size:1rem;font-weight:600;color:var(--text-3);">CR</span></div>
+          <div class="premium-sub">Valable 1 mois</div>
+          <div class="premium-features">
+            <div class="premium-feat"><svg class="feat-check" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Accès illimité à tous les 7 bots pendant 30 jours</div>
+            <div class="premium-feat"><svg class="feat-check" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>2 serveurs d'hébergement Basic inclus (créés automatiquement)</div>
+            <div class="premium-feat"><svg class="feat-check" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Aucun paiement par bot — tout inclus</div>
+            <div class="premium-feat"><svg class="feat-check" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Support prioritaire</div>
+          </div>
+          <button class="btn btn-primary btn-full" id="btn-premium" onclick="activatePremium()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            Activer Premium — 267 CR
+          </button>
+          <div id="premium-active-msg" style="display:none;margin-top:var(--s3);padding:var(--s3);background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);border-radius:var(--r-md);font-size:.82rem;color:var(--green);text-align:center;font-weight:600;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><polyline points="20 6 9 17 4 12"/></svg>
+            Premium actif — expire le <span id="premium-expire"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align:center;padding:8px 0 12px;font-size:.72rem;color:var(--text-3);font-family:var(--font-mono);">
+      Développé par <span style="color:var(--text-2);font-weight:700;">Raizel &amp; Knut</span>
+    </div>
+  </div>
+</main>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <div class="bn-item" onclick="location.href='/dashboard'">
+    <span class="bn-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></span><span>Accueil</span>
+  </div>
+  <div class="bn-item active">
+    <span class="bn-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="10" x="3" y="11" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/></svg></span><span>Bots</span>
+  </div>
+  <div class="bn-item" onclick="location.href='/panel'">
+    <span class="bn-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg></span><span>Panels</span>
+  </div>
+</nav>
+
+<script>
+// ── Données tarifaires ──
+const PLANS = {
+  rokxd:    [{dur:'24h',  h:24,   cr:7 },{dur:'48h',      h:48,   cr:10 },{dur:'1 Semaine', h:168, cr:33  },{dur:'1 Mois', h:720, cr:100 }],
+  knutxmd:  [{dur:'24h',  h:24,   cr:10 },{dur:'48h',      h:48,   cr:17 },{dur:'1 Semaine', h:168, cr:53  },{dur:'1 Mois', h:720, cr:167 }],
+  hadesxmd: [{dur:'24h',  h:24,   cr:10 },{dur:'48h',      h:48,   cr:17 },{dur:'1 Semaine', h:168, cr:53  },{dur:'1 Mois', h:720, cr:167 }],
+  raizelxmd:[{dur:'24h',  h:24,   cr:10 },{dur:'48h',      h:48,   cr:17 },{dur:'1 Semaine', h:168, cr:53  },{dur:'1 Mois', h:720, cr:167 }],
+  kratosxmd:[{dur:'24h',  h:24,   cr:5  },{dur:'48h',      h:48,   cr:8 },{dur:'1 Semaine', h:168, cr:20  },{dur:'1 Mois', h:720, cr:107 }],
+  kyroxmd:  [{dur:'24h',  h:24,   cr:5  },{dur:'48h',      h:48,   cr:8 },{dur:'1 Semaine', h:168, cr:20  },{dur:'1 Mois', h:720, cr:67 }],
+  sadeusxmd:[{dur:'24h',  h:24,   cr:9  },{dur:'48h',      h:48,   cr:15},{dur:'1 Semaine', h:168, cr:45  },{dur:'1 Mois', h:720, cr:140}]
+};
+const PREMIUM_CR = 267;
+const selectedIdx = { rokxd:0, knutxmd:0, hadesxmd:0, raizelxmd:0, kratosxmd:0, kyroxmd:0, sadeusxmd:0 };
+
+function toast(m) {
+  var t = document.getElementById('toast');
+  t.textContent = m; t.className = 'toast show';
+  clearTimeout(t._t); t._t = setTimeout(() => t.className='toast', 3500);
+}
+
+function fmt(d) { return new Date(d).toLocaleDateString('fr-FR'); }
+
+function isActive(dateStr) {
+  if (!dateStr) return false;
+  return new Date(dateStr) > new Date();
+}
+
+// Afficher/cacher les prix selon premium
+function applyPremiumUI(premiumActive, expiresAt) {
+  if (!premiumActive) return;
+  document.querySelectorAll('.duration-label').forEach(el => el.style.display = 'none');
+  document.querySelectorAll('.duration-row').forEach(el => el.style.display = 'none');
+  document.getElementById('premium-price-display').innerHTML = '<span style="color:var(--green);font-size:1rem;font-weight:700;">Accès Premium actif</span>';
+  document.getElementById('btn-premium').style.display = 'none';
+  document.getElementById('premium-active-msg').style.display = 'block';
+  document.getElementById('premium-expire').textContent = fmt(expiresAt);
+}
+
+function applyBotValidity(botKey, expiresAt) {
+  const el = document.getElementById('validity-' + botKey);
+  if (!el) return;
+  if (!expiresAt || !isActive(expiresAt)) {
+    el.style.display = 'none';
+    return;
+  }
+  el.style.display = 'flex';
+  el.className = 'validity-banner validity-active';
+  el.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Accès actif · expire le ' + fmt(expiresAt);
+}
+
+function updateDeployButton(botKey, hasAccess) {
+  const btn = document.getElementById('deploy-btn-' + botKey);
+  if (!btn) return;
+  if (hasAccess) {
+    btn.style.background = 'var(--green, #22c55e)';
+    btn.style.borderColor = 'var(--green, #22c55e)';
+    btn.style.color = '#fff';
+  } else {
+    btn.style.background = '';
+    btn.style.borderColor = '';
+    btn.style.color = '';
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  injectTopbar('/dashboard');
+  ThemeManager.init();
+  initScrollNav();
+
+  var user = null;
+  try { user = JSON.parse(localStorage.getItem('krinyx_session')); } catch(e){}
+  if (!user) { window.location.href = '/login'; return; }
+
+  var credits = user.credits !== undefined ? user.credits : (user.coins || 0);
+  document.getElementById('user-credits').textContent = credits;
+
+  fetch('/api/me').then(r => r.json()).then(d => {
+    if (d.success && d.user) {
+      credits = d.user.coins || 0;
+      user.credits = credits;
+      localStorage.setItem('krinyx_session', JSON.stringify(user));
+      document.getElementById('user-credits').textContent = credits;
+    }
+  }).catch(() => {});
+
+  fetch('/api/bot/validity').then(r => r.json()).then(d => {
+    if (!d.success) return;
+    const botAccess = d.botAccess || {};
+    const premium   = d.premium   || {};
+    const premActive = premium.active && isActive(premium.expiresAt);
+    const bots = ['rokxd','knutxmd','hadesxmd','raizelxmd','kratosxmd','kyroxmd','sadeusxmd'];
+    if (premActive) {
+      applyPremiumUI(true, premium.expiresAt);
+      bots.forEach(k => {
+        applyBotValidity(k, premium.expiresAt);
+        updateDeployButton(k, true);
+      });
+    } else {
+      bots.forEach(k => {
+        const entry = botAccess[k];
+        if (entry && isActive(entry.expiresAt)) {
+          applyBotValidity(k, entry.expiresAt);
+          updateDeployButton(k, true);
+        }
+      });
+    }
+    if (d.coins !== undefined) {
+      document.getElementById('user-credits').textContent = d.coins;
+      user.coins = d.coins; user.credits = d.coins;
+      localStorage.setItem('krinyx_session', JSON.stringify(user));
+    }
+  }).catch(() => {});
+
+  document.querySelectorAll('.duration-row').forEach(row => {
+    const botKey = row.dataset.bot;
+    row.querySelectorAll('.dur-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        row.querySelectorAll('.dur-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        selectedIdx[botKey] = parseInt(btn.dataset.idx);
+      });
+    });
+  });
+});
+
+var pendingDeploy = null;
+
+window.openDeployModal = function(name, botKey, pairingUrl) {
+  var user = null;
+  try { user = JSON.parse(localStorage.getItem('krinyx_session')); } catch(e){}
+  if (!user) { window.location.href = '/login'; return; }
+
+  fetch('/api/bot/validity').then(r => r.json()).then(d => {
+    const botAccess  = d.botAccess || {};
+    const premium    = d.premium   || {};
+    const premActive = premium.active && isActive(premium.expiresAt);
+    const botEntry   = botAccess[botKey];
+    const botActive  = botEntry && isActive(botEntry.expiresAt);
+
+    if (premActive) {
+      doDeploy(name, botKey, pairingUrl, 0, 0, 'Premium', premium.expiresAt);
+    } else if (botActive) {
+      doDeploy(name, botKey, pairingUrl, 0, 0, 'Accès actif', botEntry.expiresAt);
+    } else {
+      _openModal(name, botKey, pairingUrl);
+    }
+  }).catch(() => _openModal(name, botKey, pairingUrl));
+};
+
+function _openModal(name, botKey, pairingUrl) {
+  var plans = PLANS[botKey];
+  document.getElementById('offer-title').textContent = name;
+  document.getElementById('offer-sub').textContent = 'Sélectionne la durée d\'accès';
+
+  const imgMap = {rokxd:'/rokxd/rok.jpg',knutxmd:'/knutxmd/knut.jpg',hadesxmd:'/hadesxmd/hades.jpg',raizelxmd:'/raizelxmd/cover.jpg',kratosxmd:'/kratosxmd/kratos.jpg',kyroxmd:'/kyroxmd/kyro.jpg',sadeusxmd:'./bots/sadeus.jpg'};
+  const offerImg = document.getElementById('offer-bot-img');
+  if (offerImg) { offerImg.src = imgMap[botKey] || ''; offerImg.style.display = imgMap[botKey] ? 'block' : 'none'; }
+
+  var html = '';
+  plans.forEach((plan, i) => {
+    var sel = (i === (selectedIdx[botKey] || 0)) ? ' selected' : '';
+    html += '<div class="offer-plan' + sel + '" onclick="selectPlan(this,' + i + ')" data-idx="' + i + '">'
+      + '<span class="offer-plan-dur">' + plan.dur + '</span>'
+      + '<div class="offer-plan-right">'
+      + '<span class="offer-plan-cr">' + plan.cr + ' CR</span>'
+      + '</div></div>';
+  });
+  document.getElementById('offer-plans').innerHTML = html;
+  pendingDeploy = { name, botKey, pairingUrl };
+  document.getElementById('offer-overlay').classList.remove('hidden');
+}
+
+window.selectPlan = function(el, idx) {
+  document.querySelectorAll('#offer-plans .offer-plan').forEach(p => p.classList.remove('selected'));
+  el.classList.add('selected');
+  if (pendingDeploy) selectedIdx[pendingDeploy.botKey] = idx;
+};
+
+window.closeOfferModal = function() {
+  document.getElementById('offer-overlay').classList.add('hidden');
+  pendingDeploy = null;
+};
+
+document.getElementById('offer-confirm').addEventListener('click', () => {
+  if (!pendingDeploy) return;
+  const { name, botKey, pairingUrl } = pendingDeploy;
+  const idx  = selectedIdx[botKey] !== undefined ? selectedIdx[botKey] : 0;
+  const plan = PLANS[botKey][idx];
+  closeOfferModal();
+  doDeploy(name, botKey, pairingUrl, plan.cr, plan.h, plan.dur, null);
+});
+
+function doDeploy(name, botKey, pairingUrl, cost, hours, durLabel, knownExpiresAt) {
+  var user = null;
+  try { user = JSON.parse(localStorage.getItem('krinyx_session')); } catch(e){}
+  if (!user) { window.location.href = '/login'; return; }
+
+  var credits = user.credits !== undefined ? user.credits : (user.coins || 0);
+  if (cost > 0 && credits < cost) {
+    toast('Crédits insuffisants — il faut ' + cost + ' CR (solde : ' + credits + ' CR)');
+    return;
+  }
+
+  document.getElementById('deploy-bot-name').textContent = name;
+  document.getElementById('deploy-cr-info').textContent  = cost > 0 ? ('- ' + cost + ' CR · ' + durLabel) : ('✓ Accès actif · Redéploiement gratuit');
+  document.getElementById('deploy-overlay').classList.remove('hidden');
+
+  const doRedirect = (expiresAt) => {
+    if (expiresAt) applyBotValidity(botKey, expiresAt);
+    setTimeout(() => {
+      document.getElementById('deploy-overlay').classList.add('hidden');
+      window.location.href = pairingUrl;
+    }, 1400);
+  };
+
+  fetch('/api/bot/activate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ botKey, durationHours: hours || 0, cost })
+  }).then(r => r.json()).then(d => {
+    if (!d.success) {
+      toast(d.message || 'Erreur lors de l\'activation');
+      document.getElementById('deploy-overlay').classList.add('hidden');
+      return;
+    }
+    if (d.coins !== undefined) {
+      user.credits = d.coins; user.coins = d.coins;
+      localStorage.setItem('krinyx_session', JSON.stringify(user));
+      document.getElementById('user-credits').textContent = d.coins;
+    }
+    const expiry = d.expiresAt || knownExpiresAt;
+    applyBotValidity(botKey, expiry);
+    updateDeployButton(botKey, true);
+    if (d.free) document.getElementById('deploy-cr-info').textContent = '✓ Accès actif · Gratuit jusqu\'au ' + fmt(expiry);
+    doRedirect(expiry);
+  }).catch(() => doRedirect(knownExpiresAt));
+}
+
+window.activatePremium = function() {
+  var user = null;
+  try { user = JSON.parse(localStorage.getItem('krinyx_session')); } catch(e){}
+  if (!user) { window.location.href = '/login'; return; }
+  var credits = user.credits !== undefined ? user.credits : (user.coins || 0);
+  if (credits < PREMIUM_CR) {
+    toast('Crédits insuffisants — il faut ' + PREMIUM_CR + ' CR (solde : ' + credits + ' CR)');
+    return;
+  }
+  fetch('/api/bot/activate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ botKey: 'all', durationHours: 32 * 24, cost: PREMIUM_CR })
+  }).then(r => r.json()).then(d => {
+    if (!d.success) { toast(d.message || 'Erreur activation premium'); return; }
+    if (d.coins !== undefined) {
+      user.credits = d.coins; user.coins = d.coins;
+      localStorage.setItem('krinyx_session', JSON.stringify(user));
+      document.getElementById('user-credits').textContent = d.coins;
+    }
+    applyPremiumUI(true, d.expiresAt);
+    const bots = ['rokxd','knutxmd','hadesxmd','raizelxmd','kratosxmd','kyroxmd','sadeusxmd'];
+    bots.forEach(k => {
+      applyBotValidity(k, d.expiresAt);
+      updateDeployButton(k, true);
+    });
+    toast('🎉 Premium activé ! Expire le ' + fmt(d.expiresAt));
+  }).catch(() => toast('Erreur réseau'));
+};
+</script>
+</body>
+</html>

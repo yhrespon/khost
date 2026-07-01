@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <title>Krinyx | Recharger</title>
+  <script>(function(){var t=localStorage.getItem("krinyx_theme")||"dark";document.documentElement.setAttribute("data-theme",t);})()</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/theme_/theme.css"/>
+  <style>
+    html,body{min-height:100%;background:var(--bg);}
+    body{font-family:'DM Sans',system-ui,sans-serif;padding-top:48px;padding-bottom:80px;}
+    .toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);z-index:700;opacity:0;transition:all .25s;background:var(--surface);border:1px solid var(--border-2);border-radius:999px;padding:.5rem 1.25rem;font-size:.82rem;font-weight:500;white-space:nowrap;box-shadow:var(--shadow-lg);pointer-events:none;}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+    .page{max-width:440px;margin:0 auto;padding:var(--s5) var(--s4);}
+
+```
+/* Solde */
+.balance-card{text-align:center;padding:var(--s5) var(--s4);background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-xl);margin-bottom:var(--s5);position:relative;overflow:hidden;}
+.balance-card::before{content:'';position:absolute;top:-40px;right:-40px;width:130px;height:130px;border-radius:50%;background:radial-gradient(circle,rgba(99,102,241,.1) 0%,transparent 70%);pointer-events:none;}
+.balance-logo{width:80px;height:80px;object-fit:contain;margin-bottom:var(--s3);}
+.balance-val{font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;color:var(--text);line-height:1;}
+.balance-unit{font-size:.8rem;font-weight:600;color:var(--text-3);}
+.balance-sub{font-size:.68rem;color:var(--text-3);margin-top:4px;font-family:'DM Mono',monospace;}
+
+/* Forfaits */
+.sec-lbl{font-size:.64rem;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--text-3);margin-bottom:var(--s3);display:flex;align-items:center;gap:var(--s2);}
+.sec-lbl::after{content:'';flex:1;height:1px;background:var(--border-2);}
+.packs-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--s3);margin-bottom:var(--s4);}
+.pack{background:var(--surface);border:2px solid var(--border-2);border-radius:var(--r-lg);padding:var(--s4);cursor:pointer;transition:all .15s;text-align:center;position:relative;}
+.pack:hover{border-color:var(--text-3);}
+.pack.selected{border-color:#6366f1;background:rgba(99,102,241,.07);}
+.pack-fcfa{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;color:var(--text);}
+.pack-cr{font-size:.72rem;font-weight:700;color:#6366f1;margin-top:3px;}
+.pack-badge{position:absolute;top:-8px;right:8px;background:#6366f1;color:#fff;font-size:.55rem;font-weight:800;padding:2px 7px;border-radius:999px;letter-spacing:.05em;}
+
+/* Formulaire */
+.form-card{background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-xl);overflow:hidden;margin-bottom:var(--s5);}
+.form-header{padding:var(--s4) var(--s5);border-bottom:1px solid var(--border-2);text-align:center;}
+.form-header-title{font-size:.9rem;font-weight:700;color:var(--text);line-height:1.4;}
+.form-body{padding:var(--s5);}
+.field{margin-bottom:var(--s4);}
+.field:last-of-type{margin-bottom:0;}
+.field-lbl{font-size:.8rem;font-weight:600;color:var(--text-2);margin-bottom:8px;display:flex;align-items:center;gap:4px;}
+.req{color:#e53e3e;}
+.field-input{width:100%;padding:.78rem var(--s4);background:var(--bg-2);border:1.5px solid var(--border-2);border-radius:var(--r-md);font-size:.92rem;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;transition:border-color .15s,box-shadow .15s;box-sizing:border-box;}
+.field-input:focus{border-color:#6366f1;box-shadow:0 0 0 3px rgba(99,102,241,.12);}
+.field-input::placeholder{color:var(--text-3);}
+
+/* Résumé sélection */
+.recap{display:none;margin-bottom:var(--s4);padding:var(--s3) var(--s4);background:rgba(99,102,241,.07);border:1px solid rgba(99,102,241,.18);border-radius:var(--r-md);align-items:center;justify-content:space-between;}
+.recap.show{display:flex;}
+.recap-left{font-size:.75rem;color:var(--text-3);}
+.recap-left b{color:var(--text);font-size:.85rem;display:block;}
+.recap-cr{font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800;color:#6366f1;line-height:1;}
+.recap-unit{font-size:.7rem;color:var(--text-3);margin-left:2px;}
+
+/* Bouton */
+.btn-pay{width:100%;padding:1rem;background:linear-gradient(135deg,#22c55e,#15803d);border:none;border-radius:var(--r-lg);color:#fff;font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:opacity .15s,transform .1s;margin-top:var(--s4);}
+.btn-pay:hover:not(:disabled){opacity:.88;}
+.btn-pay:active:not(:disabled){transform:scale(.98);}
+.btn-pay:disabled{opacity:.38;cursor:not-allowed;}
+.spinner{width:18px;height:18px;border:2.5px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none;flex-shrink:0;}
+.loading .spinner{display:block;}
+.loading .btn-txt{display:none;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Logos */
+.pm-logos{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;padding:var(--s3) var(--s5) var(--s4);}
+.pm-note{width:100%;text-align:center;font-size:.68rem;color:var(--text-3);margin-bottom:6px;}
+.pm-logo{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.52rem;font-weight:800;border:1px solid var(--border-2);}
+
+/* Historique */
+.hist-empty{text-align:center;padding:var(--s5);font-size:.78rem;color:var(--text-3);}
+.hist-item{display:flex;align-items:center;gap:var(--s3);padding:var(--s3) var(--s4);background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-md);margin-bottom:var(--s2);}
+.hist-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.d-paid{background:var(--green);}.d-pending{background:var(--orange);}.d-failed{background:var(--red);}
+.hist-body{flex:1;min-width:0;}
+.hist-title{font-size:.82rem;font-weight:700;color:var(--text);}
+.hist-sub{font-size:.67rem;color:var(--text-3);font-family:'DM Mono',monospace;margin-top:1px;}
+.hist-right{text-align:right;flex-shrink:0;}
+.hist-cr{font-family:'Syne',sans-serif;font-size:.9rem;font-weight:800;color:var(--text);}
+.hist-badge{font-size:.58rem;font-weight:700;text-transform:uppercase;padding:2px 6px;border-radius:999px;display:inline-block;margin-top:2px;}
+.hb-paid{background:rgba(34,197,94,.12);color:var(--green);}
+.hb-pending{background:rgba(249,115,22,.12);color:var(--orange);}
+.hb-failed{background:rgba(239,68,68,.12);color:var(--red);}
+```
+
+  </style>
+</head>
+<body>
+<script src="/js/ui.js"></script>
+<script src="/js/services-guard.js"></script>
+<div class="toast" id="toast"></div>
+
+<div class="page">
+
+  <!-- Solde -->
+
+  <div class="balance-card">
+    <img src="/logo.jpg" alt="Krinyx" class="balance-logo"/>
+    <div class="balance-val"><span id="balance-cr">&ndash;</span><span class="balance-unit"> CR</span></div>
+    <div class="balance-sub">1 cr&eacute;dit = 15 XAF</div>
+  </div>
+
+  <!-- Forfaits -->
+
+  <div class="sec-lbl">Choisir un forfait</div>
+  <div class="packs-grid" id="packs-grid"></div>
+
+  <!-- Formulaire -->
+
+  <div class="form-card">
+    <div class="form-header">
+      <div class="form-header-title">Entrez les informations demand&eacute;es pour<br>finaliser le paiement</div>
+    </div>
+    <div class="form-body">
+
+```
+  <!-- Recap forfait selectionne -->
+  <div class="recap" id="recap">
+    <div class="recap-left">
+      <b id="recap-fcfa">&ndash;</b>
+      Vous recevrez
+    </div>
+    <div>
+      <span class="recap-cr" id="recap-cr">0</span>
+      <span class="recap-unit">CR</span>
+    </div>
+  </div>
+
+  <!-- Nom -->
+  <div class="field">
+    <div class="field-lbl">Nom &amp; Pr&eacute;noms <span class="req">*</span></div>
+    <input class="field-input" id="f-nom" type="text"
+      placeholder="Votre nom complet" autocomplete="name" oninput="validate()"/>
+  </div>
+
+  <!-- Email -->
+  <div class="field" style="margin-bottom:0;">
+    <div class="field-lbl">E-mail <span class="req">*</span></div>
+    <input class="field-input" id="f-email" type="email"
+      placeholder="votre@email.com" autocomplete="email" oninput="validate()"/>
+  </div>
+
+  <!-- Note -->
+  <p style="font-size:.72rem;color:var(--text-3);text-align:center;margin-top:var(--s3);margin-bottom:var(--s2);line-height:1.5;">
+    &#9888; Une fois redirig&eacute;, finalisez le paiement rapidement.<br>La session Money Fusion expire apr&egrave;s quelques minutes.
+  </p>
+
+  <!-- Bouton payer -->
+  <button class="btn-pay" id="btn-pay" onclick="submitPayment()" disabled>
+    <div class="spinner"></div>
+    <span class="btn-txt">&#128179; Proc&eacute;der au paiement</span>
+  </button>
+
+</div>
+
+<!-- Logos moyens de paiement -->
+<div class="pm-logos">
+  <div class="pm-note">Nos moyens de paiement accept&eacute;s</div>
+  <div class="pm-logo" style="background:rgba(255,100,0,.12);color:#ff6400;">OM</div>
+  <div class="pm-logo" style="background:rgba(230,184,0,.12);color:#b8860b;">MTN</div>
+  <div class="pm-logo" style="background:rgba(0,176,255,.12);color:#00b0ff;">W</div>
+  <div class="pm-logo" style="background:rgba(0,102,204,.12);color:#0066cc;font-size:.48rem;">MOOV</div>
+  <div class="pm-logo" style="background:rgba(25,118,210,.12);color:#1976d2;font-size:.48rem;">VISA</div>
+  <div class="pm-logo" style="background:rgba(235,80,40,.12);color:#eb5028;font-size:.48rem;">MC</div>
+</div>
+```
+
+  </div>
+
+  <!-- Historique -->
+
+  <div class="sec-lbl">Historique des recharges</div>
+  <div id="history-list"><div class="hist-empty">Chargement&hellip;</div></div>
+
+</div>
+
+<!-- BOTTOM NAV -->
+
+<nav class="bottom-nav">
+  <div class="bn-item" onclick="location.href='/dashboard'">
+    <span class="bn-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></span><span>Accueil</span>
+  </div>
+  <div class="bn-item active">
+    <span class="bn-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span><span>Recharger</span>
+  </div>
+</nav>
+
+<script>
+/* =================================================================
+   buy.js intégré | Krinyx x Money Fusion
+   ---------------------------------------------------------------
+   L'URL de paiement est générée côté SERVEUR (sécurisé).
+   Le paymentId est créé par le serveur → permet au webhook
+   de retrouver le bon utilisateur et d'ajouter les crédits.
+   ---------------------------------------------------------------
+   1 CR = 15 XAF  |  IP autorisée webhook : 192.168.1.1
+================================================================= */
+
+const CREDIT_RATE = 15;
+
+/* Forfaits fixes */
+const PACKS = [
+  { fcfa: 250,   cr: Math.floor(250   / 15) },
+  { fcfa: 500,   cr: Math.floor(500   / 15) },
+  { fcfa: 1000,  cr: Math.floor(1000  / 15) },
+  { fcfa: 2000,  cr: Math.floor(2000  / 15) },
+  { fcfa: 5000,  cr: Math.floor(5000  / 15) },
+  { fcfa: 10000, cr: Math.floor(10000 / 15), best: true },
+];
+
+/* ── État ── */
+let selectedPack = null;
+const $ = id => document.getElementById(id);
+
+function toast(msg, dur) {
+  dur = dur || 3200;
+  const t = $('toast');
+  t.textContent = msg;
+  t.className = 'toast show';
+  clearTimeout(t._t);
+  t._t = setTimeout(function () { t.className = 'toast'; }, dur);
+}
+
+function fmt(n) {
+  return n.toLocaleString('fr-FR');
+}
+
+/* ── Rendu des forfaits ── */
+function renderPacks() {
+  $('packs-grid').innerHTML = PACKS.map(function (p) {
+    const badge = p.best ? '<span class="pack-badge">MEILLEUR</span>' : '';
+    return '<div class="pack" data-fcfa="' + p.fcfa + '" onclick="selectPack(' + p.fcfa + ',' + p.cr + ')">'
+      + badge
+      + '<div class="pack-fcfa">' + fmt(p.fcfa) + ' XAF</div>'
+      + '<div class="pack-cr">= ' + p.cr + ' CR</div>'
+      + '</div>';
+  }).join('');
+}
+
+function selectPack(fcfa, cr) {
+  selectedPack = { fcfa, cr };
+  document.querySelectorAll('.pack').forEach(function (el) {
+    el.classList.toggle('selected', parseInt(el.dataset.fcfa) === fcfa);
+  });
+  $('recap-fcfa').textContent = fmt(fcfa) + ' XAF';
+  $('recap-cr').textContent   = cr;
+  $('recap').classList.add('show');
+  validate();
+}
+
+/* ── Validation ── */
+function validate() {
+  const nom   = $('f-nom').value.trim();
+  const email = $('f-email').value.trim();
+  const ok    = selectedPack !== null
+    && nom.length >= 2
+    && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  $('btn-pay').disabled = !ok;
+}
+
+/* ── Soumission — URL générée CÔTÉ SERVEUR ── */
+async function submitPayment() {
+  const nom   = $('f-nom').value.trim();
+  const email = $('f-email').value.trim();
+
+  if (!selectedPack) { toast('Choisis un forfait'); return; }
+  if (!nom)           { toast('Entre ton nom'); return; }
+  if (!email)         { toast('Entre ton email'); return; }
+
+  const btn = $('btn-pay');
+  btn.disabled = true;
+  btn.classList.add('loading');
+
+  try {
+    /* 1. Appel serveur : sauvegarde en DB + génération paymentId + URL Money Fusion */
+    const res  = await fetch('/api/payment/fusion/init', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({
+        amountFcfa: selectedPack.fcfa,
+        nomclient:  nom,
+        email:      email
+      })
+    });
+    const data = await res.json();
+
+    if (!data.success) {
+      toast(data.message || 'Erreur serveur — réessaie');
+      btn.disabled = false;
+      btn.classList.remove('loading');
+      return;
+    }
+
+    /* 2. Redirection vers Money Fusion avec l'URL sécurisée du serveur */
+    toast('Redirection vers Money Fusion…', 4000);
+    window.location.href = data.payUrl;
+
+  } catch (e) {
+    console.error('[BUY]', e);
+    toast('Erreur réseau — réessaie');
+    btn.disabled = false;
+    btn.classList.remove('loading');
+  }
+}
+
+/* ── Rafraîchir le solde ── */
+async function refreshBalance() {
+  try {
+    const d = await fetch('/api/me').then(r => r.json());
+    if (d.success && d.user && $('balance-cr')) {
+      $('balance-cr').textContent = d.user.coins != null ? d.user.coins : 0;
+    }
+  } catch (e) { /* silencieux */ }
+}
+
+/* ── Historique des recharges ── */
+async function loadHistory() {
+  const el = $('history-list');
+  try {
+    const data = await fetch('/api/payment/fusion/history').then(r => r.json());
+    if (!data.success || !data.history || !data.history.length) {
+      el.innerHTML = '<div class="hist-empty">Aucune recharge pour l\'instant.</div>';
+      return;
+    }
+    const S = {
+      paid:    ['d-paid',    'hb-paid',    'Confirm\u00e9e'],
+      pending: ['d-pending', 'hb-pending', 'En attente'],
+      failed:  ['d-failed',  'hb-failed',  '\u00c9chou\u00e9e'],
+    };
+    el.innerHTML = data.history.map(function (r) {
+      const s    = S[r.status] || S.pending;
+      const date = new Date(r.date).toLocaleDateString('fr-FR', {
+        day: '2-digit', month: 'short', year: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+      });
+      return '<div class="hist-item">'
+        + '<div class="hist-dot ' + s[0] + '"></div>'
+        + '<div class="hist-body">'
+        +   '<div class="hist-title">' + (r.amountFcfa || 0).toLocaleString('fr-FR') + ' FCFA</div>'
+        +   '<div class="hist-sub">' + date + (r.moyen ? ' \u00b7 ' + r.moyen : '') + '</div>'
+        + '</div>'
+        + '<div class="hist-right">'
+        +   '<div class="hist-cr">+' + r.credits + ' CR</div>'
+        +   '<span class="hist-badge ' + s[1] + '">' + s[2] + '</span>'
+        + '</div>'
+        + '</div>';
+    }).join('');
+  } catch (e) {
+    el.innerHTML = '<div class="hist-empty">Impossible de charger l\'historique.</div>';
+  }
+}
+
+/* ── Init ── */
+document.addEventListener('DOMContentLoaded', function () {
+  injectTopbar('/dashboard');
+  ThemeManager.init();
+  if (typeof initScrollNav === 'function') initScrollNav();
+
+  renderPacks();
+  refreshBalance();
+
+  /* Écouter les inputs pour activer/désactiver le bouton */
+  ['f-nom', 'f-email'].forEach(function (id) {
+    const el = $(id);
+    if (el) el.addEventListener('input', validate);
+  });
+
+  /* Retour après paiement Money Fusion (?payment=success) */
+  if (new URLSearchParams(window.location.search).get('payment') === 'success') {
+    toast('Paiement reçu — tes crédits seront ajoutés sous peu.', 5000);
+    window.history.replaceState({}, '', '/buy');
+    /* Rafraîchir solde + historique après 3s */
+    setTimeout(function () {
+      refreshBalance();
+      loadHistory();
+    }, 3000);
+    /* Rafraîchir à nouveau après 8s au cas où le webhook est lent */
+    setTimeout(function () {
+      refreshBalance();
+      loadHistory();
+    }, 8000);
+  }
+
+  loadHistory();
+});
+</script>
+
+</body>
+</html>

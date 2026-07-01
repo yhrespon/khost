@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <title>Krinyx | Profil</title>
+  <script>(function(){var t=localStorage.getItem("krinyx_theme")||"dark";document.documentElement.setAttribute("data-theme",t);var l=localStorage.getItem("krinyx_lang")||"fr";document.documentElement.setAttribute("lang",l);})()</script>
+  <link rel="stylesheet" href="/theme_/theme.css"/>
+  <style>
+    html, body { height: 100%; overflow: hidden; }
+
+```
+.toast {
+  position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px);
+  z-index: 500; opacity: 0; transition: all 0.25s var(--ease);
+  background: var(--surface); border: 1px solid var(--border-2);
+  border-radius: var(--r-full); padding: 0.5rem 1.25rem;
+  font-size: 0.85rem; font-weight: 500; white-space: nowrap;
+  box-shadow: var(--shadow-lg); pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+.profil-page {
+  position: fixed;
+  top: 48px; bottom: 56px;
+  left: 0; right: 0;
+  overflow-y: auto; overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding: var(--s4);
+  display: flex; flex-direction: column; gap: var(--s4);
+}
+@media (min-width: 700px) { .profil-page { bottom: 0; padding: var(--s6); max-width: 600px; margin: 0 auto; left: 0; right: 0; } }
+
+.avatar-section {
+  display: flex; flex-direction: column; align-items: center;
+  gap: var(--s2); padding: var(--s5) var(--s4) var(--s3);
+}
+.avatar-ring {
+  width: 96px; height: 96px; border-radius: 50%;
+  background: var(--bg-3);
+  border: 2px solid var(--border-2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2rem; font-weight: 900; color: var(--text);
+  overflow: hidden; flex-shrink: 0;
+  box-shadow: 0 0 0 4px var(--bg-2), 0 0 0 6px var(--border);
+}
+.avatar-ring img { width: 100%; height: 100%; object-fit: cover; }
+.avatar-username {
+  font-size: 1.15rem; font-weight: 800; color: var(--text);
+  letter-spacing: -0.01em;
+}
+.avatar-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 12px; border-radius: var(--r-full);
+  font-size: 0.62rem; font-weight: 700; font-family: var(--font-mono);
+  letter-spacing: 0.08em; text-transform: uppercase;
+  border: 1px solid var(--border-2); color: var(--text-3); background: var(--bg-3);
+}
+.avatar-badge.admin { border-color: rgba(167,139,250,0.4); color: var(--purple); background: rgba(167,139,250,0.08); }
+
+.two-col { display: grid; grid-template-columns: 1fr 1.6fr; gap: var(--s3); align-items: start; }
+
+.credit-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-lg); padding: var(--s4);
+  display: flex; flex-direction: column; gap: var(--s3);
+}
+.credit-label { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-3); }
+.credit-value { font-size: 2.2rem; font-weight: 900; font-family: var(--font-mono); color: var(--text); line-height: 1; }
+.credit-sub { font-size: 0.68rem; color: var(--text-3); }
+.credit-bar { height: 3px; background: var(--bg-3); border-radius: var(--r-full); overflow: hidden; }
+.credit-bar-fill { height: 100%; background: var(--text); border-radius: var(--r-full); width: 0%; transition: width 0.7s var(--ease); }
+
+.btn-recharger {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  background: var(--text); color: var(--text-inv);
+  border: none; border-radius: var(--r-md); padding: 0.55rem 0.75rem;
+  font-size: 0.78rem; font-weight: 700; cursor: pointer;
+  transition: all var(--t-fast); text-decoration: none; width: 100%;
+}
+.btn-recharger:hover { opacity: 0.85; }
+
+.btn-premium {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  background: rgba(167,139,250,0.08); color: var(--purple);
+  border: 1px solid rgba(167,139,250,0.35); border-radius: var(--r-md);
+  padding: 0.55rem 0.75rem; font-size: 0.75rem; font-weight: 700;
+  cursor: pointer; transition: all var(--t-fast); width: 100%;
+}
+.btn-premium:hover { background: rgba(167,139,250,0.15); }
+
+.info-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-lg); overflow: hidden;
+}
+.info-card-head {
+  padding: var(--s3) var(--s4);
+  border-bottom: 1px solid var(--border);
+  font-size: 0.72rem; font-weight: 800; letter-spacing: 0.05em;
+  text-transform: uppercase; color: var(--text-2);
+}
+.info-card-body { padding: var(--s4); display: flex; flex-direction: column; gap: var(--s3); }
+.info-row { display: flex; flex-direction: column; gap: 3px; }
+.info-row-label { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-3); }
+.info-row-value { font-size: 0.88rem; font-weight: 600; font-family: var(--font-mono); color: var(--text); word-break: break-all; }
+.info-row-value.muted { color: var(--text-2); }
+
+.tabs-block {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-lg); overflow: hidden;
+}
+.tabs-header {
+  display: grid; grid-template-columns: 1fr 1fr;
+  border-bottom: 1px solid var(--border);
+}
+.tab-btn {
+  padding: var(--s3) var(--s4);
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em;
+  text-transform: uppercase; color: var(--text-3);
+  background: none; border: none; cursor: pointer;
+  transition: all var(--t-fast); border-bottom: 2px solid transparent;
+}
+.tab-btn.active { color: var(--text); border-bottom-color: var(--text); }
+.tab-btn:hover { color: var(--text-2); }
+.tab-content { display: none; padding: var(--s4); min-height: 140px; }
+.tab-content.active { display: block; }
+
+.hist-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--s2) 0; border-bottom: 1px solid var(--border);
+  gap: var(--s3);
+}
+.hist-item:last-child { border-bottom: none; }
+.hist-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.hist-dot.ok { background: var(--green); }
+.hist-dot.out { background: var(--red); }
+.hist-dot.in { background: var(--blue); }
+.hist-desc { flex: 1; font-size: 0.8rem; color: var(--text-2); }
+.hist-amount { font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; white-space: nowrap; }
+.hist-amount.positive { color: var(--green); }
+.hist-amount.negative { color: var(--red); }
+.hist-date { font-size: 0.65rem; color: var(--text-3); white-space: nowrap; }
+
+.notif-item {
+  display: flex; align-items: flex-start; gap: var(--s3);
+  padding: var(--s2) 0; border-bottom: 1px solid var(--border);
+}
+.notif-item:last-child { border-bottom: none; }
+.notif-icon { width: 28px; height: 28px; border-radius: var(--r-sm); background: var(--bg-3); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 0.85rem; }
+.notif-text { flex: 1; font-size: 0.8rem; color: var(--text-2); line-height: 1.5; }
+.notif-time { font-size: 0.65rem; color: var(--text-3); white-space: nowrap; }
+
+.empty-mini { display: flex; flex-direction: column; align-items: center; gap: var(--s2); padding: var(--s5) var(--s4); text-align: center; opacity: 0.5; }
+.empty-mini span { font-size: 0.8rem; color: var(--text-3); }
+
+.btn-deconnexion {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  background: rgba(239,68,68,0.06); color: var(--red);
+  border: 1px solid rgba(239,68,68,0.25); border-radius: var(--r-full);
+  padding: 0.85rem 1.5rem; font-size: 0.9rem; font-weight: 700;
+  cursor: pointer; transition: all var(--t-fast); width: 100%;
+}
+.btn-deconnexion:hover { background: rgba(239,68,68,0.12); border-color: var(--red); }
+
+.btn-admin-access {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  background: rgba(239,68,68,0.06); color: var(--red);
+  border: 1px solid rgba(239,68,68,0.25); border-radius: var(--r-md);
+  padding: 0.65rem 1rem; font-size: 0.82rem; font-weight: 700;
+  cursor: pointer; transition: all var(--t-fast); width: 100%;
+  text-decoration: none;
+}
+.btn-admin-access:hover { background: rgba(239,68,68,0.12); }
+
+.spacer { height: var(--s5); }
+```
+
+  </style>
+</head>
+<body>
+
+<script src="/js/ui.js"></script>
+
+<div class="toast" id="toast"></div>
+
+<div class="profil-page">
+
+  <!-- 1. AVATAR + USERNAME -->
+
+  <div class="avatar-section">
+    <div class="avatar-ring" id="av-circle">
+      <img src="/logo.jpg" alt="Krinyx" id="av-img"
+           onerror="this.style.display='none';document.getElementById('av-ini').style.display='flex'"/>
+      <span id="av-ini" style="display:none;width:100%;height:100%;align-items:center;justify-content:center;font-size:1.8rem;font-weight:900;"></span>
+    </div>
+    <div class="avatar-username" id="p-username">…</div>
+    <span class="avatar-badge" id="p-badge">MEMBRE</span>
+  </div>
+
+  <!-- 2. SOLDE + INFOS -->
+
+  <div class="two-col">
+
+```
+<div style="display:flex;flex-direction:column;gap:var(--s3);">
+  <div class="credit-card">
+    <div>
+      <div class="credit-label">Solde Crédit</div>
+      <div class="credit-value" id="p-credits">—</div>
+      <div class="credit-sub">crédits</div>
+    </div>
+    <div class="credit-bar"><div class="credit-bar-fill" id="cr-fill"></div></div>
+  </div>
+
+  <!-- FIX: route /buy (pas ./pages/buy.html) -->
+  <a href="/buy" class="btn-recharger">
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>
+    Recharger
+  </a>
+
+  <button class="btn-premium" onclick="goPremium()">
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+    Devenir Premium
+  </button>
+</div>
+
+<div class="info-card">
+  <div class="info-card-head">Informations</div>
+  <div class="info-card-body">
+    <div class="info-row">
+      <span class="info-row-label">Email</span>
+      <span class="info-row-value muted" id="p-email">—</span>
+    </div>
+    <div class="info-row">
+      <span class="info-row-label">Date d'inscription</span>
+      <span class="info-row-value muted" id="p-joined">—</span>
+    </div>
+    <div class="info-row">
+      <span class="info-row-label">Temps sur le site</span>
+      <span class="info-row-value" id="p-time">0h 0min</span>
+    </div>
+  </div>
+</div>
+```
+
+  </div>
+
+  <!-- Admin button -->
+
+  <div id="admin-btn-wrap" style="display:none;">
+    <a href="/admindashboard" class="btn-admin-access">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Accéder au panneau Admin
+    </a>
+  </div>
+
+  <!-- 3. HISTORIQUE + NOTIFICATIONS -->
+
+  <div class="tabs-block">
+    <div class="tabs-header">
+      <button class="tab-btn active" id="tab-hist"  onclick="switchTab('hist')">Historique</button>
+      <button class="tab-btn"        id="tab-notif" onclick="switchTab('notif')">Notifications</button>
+    </div>
+
+```
+<div class="tab-content active" id="content-hist">
+  <div id="hist-list">
+    <div class="empty-mini"><span>🧾</span><span>Chargement…</span></div>
+  </div>
+</div>
+
+<div class="tab-content" id="content-notif">
+  <div id="notif-list">
+    <div class="notif-item">
+      <div class="notif-icon">🎉</div>
+      <div style="flex:1;">
+        <div class="notif-text">Bienvenue sur Krinyx ! 50 crédits offerts à l'inscription.</div>
+        <div class="notif-time">Aujourd'hui</div>
+      </div>
+    </div>
+    <div class="notif-item">
+      <div class="notif-icon">🤖</div>
+      <div style="flex:1;">
+        <div class="notif-text">7 bots WhatsApp disponibles au déploiement.</div>
+        <div class="notif-time">Aujourd'hui</div>
+      </div>
+    </div>
+  </div>
+</div>
+```
+
+  </div>
+
+  <!-- 4. DÉCONNEXION -->
+
+  <button class="btn-deconnexion" onclick="deconnexion()">
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+    Déconnexion
+  </button>
+
+  <div class="spacer"></div>
+</div>
+
+<!-- BOTTOM NAV -->
+
+<nav class="bottom-nav">
+  <a class="bn-item" href="/dashboard">
+    <span class="bn-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    </span>
+    <span>Accueil</span>
+  </a>
+  <a class="bn-item active" href="/profil">
+    <span class="bn-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    </span>
+    <span>Profil</span>
+  </a>
+  <a class="bn-item" href="/help">
+    <span class="bn-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+    </span>
+    <span>Aide</span>
+  </a>
+</nav>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  if (typeof injectTopbar  === 'function') injectTopbar('/profil');
+  if (typeof ThemeManager  !== 'undefined') ThemeManager.init();
+  if (typeof i18n          !== 'undefined') i18n.init();
+
+  /* ───────────────────────────────────────────────
+     FIX #1 : Données réelles depuis /api/me
+     (plus de localStorage pour la session)
+  ─────────────────────────────────────────────── */
+  fetch('/api/me')
+    .then(function(r) {
+      if (r.status === 401) { window.location.href = '/login'; return null; }
+      return r.json();
+    })
+    .then(function(d) {
+      if (!d || !d.success) { window.location.href = '/login'; return; }
+      var user = d.user;
+      fillProfile(user);
+      /* FIX #3 : historique depuis /api/payment/fusion/history */
+      loadHistory(user);
+    })
+    .catch(function() { window.location.href = '/login'; });
+
+  /* ─── Remplir les données du profil ─── */
+  function fillProfile(user) {
+    var cr      = user.coins != null ? user.coins : 0;
+    var un      = user.username || (user.email ? user.email.split('@')[0] : 'USER');
+    var ini     = un.slice(0, 2).toUpperCase();
+    var isAdmin = !!(user.isadmin || user.isAdmin);
+    var joined  = user.createdAt
+      ? new Date(user.createdAt).toLocaleDateString('fr-FR')
+      : new Date().toLocaleDateString('fr-FR');
+
+    // Avatar initiales (fallback logo)
+    var avIni = document.getElementById('av-ini');
+    if (avIni) avIni.textContent = ini;
+
+    // Champs
+    set('p-username', un);
+    set('p-email',    user.email || '—');
+    set('p-joined',   joined);
+    set('p-credits',  cr);
+
+    // Badge
+    var badge = document.getElementById('p-badge');
+    if (badge) {
+      badge.textContent = isAdmin ? 'ADMIN' : 'MEMBRE';
+      if (isAdmin) badge.classList.add('admin');
+    }
+
+    // Barre crédits
+    setTimeout(function() {
+      var fill = document.getElementById('cr-fill');
+      if (fill) fill.style.width = Math.min(100, cr) + '%';
+    }, 300);
+
+    // Bouton admin
+    if (isAdmin) {
+      var wrap = document.getElementById('admin-btn-wrap');
+      if (wrap) wrap.style.display = 'block';
+    }
+  }
+
+  /* ─── Temps de session ─── */
+  var sessionStart = parseInt(sessionStorage.getItem('dh_start') || Date.now());
+  sessionStorage.setItem('dh_start', sessionStart);
+  function updateTime() {
+    var mins = Math.floor((Date.now() - sessionStart) / 60000);
+    var h = Math.floor(mins / 60), m = mins % 60;
+    set('p-time', h + 'h ' + m + 'min');
+  }
+  updateTime();
+  setInterval(updateTime, 30000);
+
+  /* ───────────────────────────────────────────────
+     FIX #3 : Historique — utilise /api/payment/fusion/history
+     (même endpoint que buy.html)
+  ─────────────────────────────────────────────── */
+  function loadHistory(user) {
+    var list = document.getElementById('hist-list');
+
+    fetch('/api/payment/fusion/history')
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        var items = [];
+
+        // Recharges Money Fusion
+        if (data.success && data.history && data.history.length) {
+          data.history.slice(0, 10).forEach(function(r) {
+            items.push({
+              dot:    'in',
+              desc:   'Recharge ' + (r.method || 'MoneyFusion'),
+              amount: '+' + r.credits,
+              cls:    'positive',
+              date:   r.date ? new Date(r.date).toLocaleDateString('fr-FR') : '—'
+            });
+          });
+        }
+
+        if (!items.length) {
+          // Fallback : afficher au moins l'inscription
+          var joined = user.createdAt
+            ? new Date(user.createdAt).toLocaleDateString('fr-FR')
+            : new Date().toLocaleDateString('fr-FR');
+          items.push({
+            dot: 'in', desc: "Crédits offerts à l'inscription",
+            amount: '+50', cls: 'positive', date: joined
+          });
+        }
+
+        list.innerHTML = items.map(function(tx) {
+          return '<div class="hist-item">'
+            + '<span class="hist-dot ' + tx.dot + '"></span>'
+            + '<span class="hist-desc">' + tx.desc + '</span>'
+            + '<span class="hist-amount ' + tx.cls + '">' + tx.amount + ' CR</span>'
+            + '<span class="hist-date">' + tx.date + '</span>'
+            + '</div>';
+        }).join('');
+      })
+      .catch(function() {
+        list.innerHTML = '<div class="empty-mini"><span>🧾</span><span>Aucune transaction</span></div>';
+      });
+  }
+
+  /* ─── Tabs ─── */
+  window.switchTab = function(tab) {
+    document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+    document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.remove('active'); });
+    document.getElementById('tab-' + tab).classList.add('active');
+    document.getElementById('content-' + tab).classList.add('active');
+  };
+
+  /* ─── Premium ─── */
+  window.goPremium = function() {
+    fetch('/api/me').then(function(r) { return r.json(); }).then(function(d) {
+      var un  = d.user ? d.user.username : 'user';
+      var msg = encodeURIComponent('Bonjour, je suis ' + un + ' sur Krinyx et je souhaite devenir Premium.');
+      window.open('https://wa.me/237673941535?text=' + msg, '_blank');
+    });
+  };
+
+  /* ───────────────────────────────────────────────
+     FIX #5 : Déconnexion — route GET /logout
+     (server.js: app.get('/logout', ...))
+  ─────────────────────────────────────────────── */
+  window.deconnexion = function() {
+    if (!confirm('Se déconnecter ?')) return;
+    // Nettoyer le storage local (optionnel)
+    localStorage.removeItem('krinyx_session');
+    sessionStorage.clear();
+    // FIX: GET /logout (pas POST) — correspond à server.js
+    window.location.href = '/logout';
+  };
+
+  if (window._dhDeco) window._dhDeco = window.deconnexion;
+
+  /* ─── Helper ─── */
+  function set(id, val) {
+    var e = document.getElementById(id);
+    if (e) e.textContent = val;
+  }
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Krinyx | Admin</title>
+  <!-- Krinyx: apply theme+lang instantly to avoid flash -->
+  <script>(function(){var t=localStorage.getItem("krinyx_theme")||"dark";document.documentElement.setAttribute("data-theme",t);var l=localStorage.getItem("krinyx_lang")||"fr";document.documentElement.setAttribute("lang",l);})()</script>
+  <link rel="stylesheet" href="/theme_/theme.css"/>
+  <style>
+    /* Danger accent for admin */
+    .auth-card.admin-card {
+      border-color: rgba(239,68,68,0.2);
+    }
+    .auth-card.admin-card .auth-icon {
+      background: rgba(239,68,68,0.08);
+      border-color: rgba(239,68,68,0.2);
+    }
+    .warning-banner {
+      display: flex; align-items: flex-start; gap: var(--s3);
+      padding: var(--s3) var(--s4);
+      background: rgba(239,68,68,0.06);
+      border: 1px solid rgba(239,68,68,0.2);
+      border-radius: var(--r-md);
+      margin-bottom: var(--s5);
+      font-size: 0.8rem; color: rgba(239,68,68,0.7); line-height: 1.5;
+    }
+    .warning-icon { flex-shrink: 0; }
+    .status-dot-red::before { background: var(--red) !important; box-shadow: 0 0 0 2px rgba(239,68,68,0.2) !important; }
+  </style>
+</head>
+<body>
+
+<script src="/js/ui.js"></script>
+
+<div class="auth-page">
+  <div class="auth-card admin-card">
+
+    <div class="auth-header">
+      <div class="auth-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+      <h1 class="auth-title" data-i18n="admin.title">Accès Administrateur</h1>
+      <p class="auth-sub" data-i18n="admin.sub">Panneau de contrôle restreint</p>
+    </div>
+
+    <div class="warning-banner">
+      <span class="warning-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span>
+      <span data-i18n="admin.warning">Accès restreint au personnel autorisé.</span>
+    </div>
+
+    <div style="margin-bottom:var(--s5);">
+      <span class="status-dot status-dot-red" data-i18n="admin.status">Zone sécurisée</span>
+    </div>
+
+    <div class="alert" id="alert" role="alert"></div>
+
+    <form class="auth-form" id="adminForm" autocomplete="off" novalidate>
+
+      <div class="form-group">
+        <label class="form-label" for="email" data-i18n="admin.email">Email administrateur</label>
+        <div class="input-wrap">
+          <span class="input-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg></span>
+          <input type="email" id="email" class="form-input has-icon"
+                 placeholder="admin@krinyx.io" required/>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="password" data-i18n="admin.password">Mot de passe</label>
+        <div class="input-wrap">
+          <span class="input-icon"></span>
+          <input type="password" id="password" class="form-input has-icon"
+                 placeholder="••••••••" required style="padding-right:2.6rem;"/>
+          <button type="button" class="toggle-pw" id="togglePw"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-danger btn-full" id="btnAdmin"
+              style="background:rgba(239,68,68,0.1);border-color:rgba(239,68,68,0.4);color:var(--red);">
+        <span class="btn-text" data-i18n="admin.btn">Accéder au panneau</span>
+        <span class="btn-load">
+          <div class="dh-spin dh-spin-sm"><img src="/logo.jpg" alt="" style="width:100%;height:100%;object-fit:cover;"/></div>
+          <span data-i18n="admin.loading">Vérification…</span>
+        </span>
+      </button>
+
+    </form>
+
+    <div style="text-align:center;margin-top:var(--s4);">
+      <a href="login.html" class="btn btn-ghost btn-sm" style="color:var(--text-3);">
+        Connexion utilisateur
+      </a>
+    </div>
+
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  injectTopbar('/index.html');
+  ThemeManager.init();
+  initScrollNav();
+  i18n.init();
+
+  /* Guard */
+  try {
+    const s = JSON.parse(localStorage.getItem('krinyx_session'));
+    if (s && s.role === 'admin') window.location.replace('admin.html');
+  } catch {}
+
+  const pwInput  = document.getElementById('password');
+  const togglePw = document.getElementById('togglePw');
+  togglePw.addEventListener('click', () => {
+    pwInput.type = pwInput.type === 'password' ? 'text' : 'password';
+    togglePw.innerHTML = pwInput.type === 'password' ? '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>' : '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>';
+  });
+
+  function showAlert(type, msg) {
+    const a = document.getElementById('alert');
+    a.className = `alert alert-${type} show`;
+    a.textContent = msg;
+  }
+
+  document.getElementById('adminForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn   = document.getElementById('btnAdmin');
+    const email = document.getElementById('email').value.trim();
+    const password = pwInput.value;
+    const t = i18n.t.bind(i18n);
+
+    if (!email || !password) return showAlert('error', 'Champs requis.');
+
+    btn.classList.add('btn-loading'); btn.disabled = true;
+
+    try {
+      const res  = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+      if (res.ok && data.success && data.user?.role === 'admin') {
+        localStorage.setItem('krinyx_session', JSON.stringify(data.user));
+        showAlert('success', 'Accès accordé. Redirection…');
+        setTimeout(() => window.location.replace('admin.html'), 800);
+      } else if (res.ok && data.success) {
+        showAlert('error', 'Accès refusé. Droits administrateur requis.');
+        btn.classList.remove('btn-loading'); btn.disabled = false;
+      } else {
+        showAlert('error', data.message || t('login.err.invalid'));
+        btn.classList.remove('btn-loading'); btn.disabled = false;
+        pwInput.value = '';
+      }
+    } catch {
+      const users = JSON.parse(localStorage.getItem('krinyx_users') || '[]');
+      const user  = users.find(u => u.email === email && u.password === btoa(password + '_krinyx'));
+      if (user && user.role === 'admin') {
+        const { password: _, ...safe } = user;
+        localStorage.setItem('krinyx_session', JSON.stringify(safe));
+        showAlert('success', 'Accès accordé. Redirection…');
+        setTimeout(() => window.location.replace('admin.html'), 800);
+      } else {
+        showAlert('error', t('login.err.invalid'));
+        btn.classList.remove('btn-loading'); btn.disabled = false;
+        pwInput.value = '';
+      }
+    }
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <title>Krinyx | Boutique Panels</title>
+  <!-- Krinyx: apply theme+lang instantly to avoid flash -->
+  <script>(function(){var t=localStorage.getItem("krinyx_theme")||"dark";document.documentElement.setAttribute("data-theme",t);var l=localStorage.getItem("krinyx_lang")||"fr";document.documentElement.setAttribute("lang",l);})()</script>
+  <link rel="stylesheet" href="/theme_/theme.css"/>
+  <style>
+    body { overflow-x: hidden; }
+
+    .page-wrap {
+      padding: calc(48px + 56px + var(--s5)) var(--s4) calc(60px + var(--s5));
+      max-width: 860px; margin: 0 auto;
+    }
+    @media (min-width: 700px) { .page-wrap { padding-bottom: var(--s7); } }
+
+    /* Hero */
+    .shop-hero {
+      text-align: center; padding: var(--s5) var(--s4) var(--s6);
+    }
+    .shop-hero-title { font-size: clamp(1.5rem, 5vw, 2.5rem); font-weight: 800; letter-spacing: -0.03em; margin-bottom: var(--s2); }
+    .shop-hero-sub   { font-size: 0.9rem; color: var(--text-3); line-height: 1.6; margin-bottom: var(--s4); }
+
+    /* Filter tabs */
+    .filter-tabs { display: flex; gap: var(--s2); margin-bottom: var(--s5); overflow-x: auto; padding-bottom: 2px; }
+    .filter-tabs::-webkit-scrollbar { height: 2px; }
+    .ftab { font-size: 0.78rem; font-weight: 500; padding: 0.4rem 1rem; border-radius: var(--r-full); border: 1px solid var(--border); color: var(--text-3); cursor: pointer; white-space: nowrap; transition: all var(--t-fast); background: transparent; font-family: var(--font-body); }
+    .ftab.active { background: var(--text); color: var(--text-inv); border-color: var(--text); }
+    .ftab:hover:not(.active) { border-color: var(--border-2); color: var(--text-2); }
+
+    /* Plans grid */
+    .plans-grid { display: grid; grid-template-columns: 1fr; gap: var(--s4); margin-bottom: var(--s7); }
+    @media (min-width: 600px) { .plans-grid { grid-template-columns: repeat(3, 1fr); } }
+
+    .popular-badge {
+      position: absolute; top: var(--s3); right: var(--s3);
+      font-size: 0.65rem; font-weight: 700; letter-spacing: 0.05em;
+      background: var(--text); color: var(--text-inv);
+      padding: 2px 8px; border-radius: var(--r-full);
+    }
+
+    /* My panels section */
+    .section-label {
+      font-size: 0.72rem; font-weight: 600; letter-spacing: 0.06em;
+      text-transform: uppercase; color: var(--text-3);
+      margin-bottom: var(--s3); display: block;
+    }
+
+    /* Panel card in list */
+    .my-panel-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--r-lg); padding: var(--s4); margin-bottom: var(--s3);
+    }
+    .my-panel-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--s2); }
+    .my-panel-name { font-weight: 700; }
+    .my-panel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s3); margin-bottom: var(--s3); }
+    .my-panel-field-label { font-size: 0.62rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-3); margin-bottom: 2px; }
+    .my-panel-field-val { font-size: 0.82rem; font-family: var(--font-mono); word-break: break-all; }
+    .my-panel-exp { font-size: 0.72rem; color: var(--text-3); font-family: var(--font-mono); margin-bottom: var(--s3); }
+    .my-panel-actions { display: flex; gap: var(--s2); }
+
+    /* Buy modal payment tabs */
+    .pay-tabs { display: flex; gap: var(--s2); margin-bottom: var(--s4); }
+    .pay-tab { flex: 1; padding: 0.55rem; border-radius: var(--r-md); font-size: 0.8rem; font-weight: 500; cursor: pointer; border: 1px solid var(--border); background: transparent; color: var(--text-3); font-family: var(--font-body); transition: all var(--t-fast); }
+    .pay-tab.active { background: var(--text); color: var(--text-inv); border-color: var(--text); }
+    .pay-panel { display: none; }
+    .pay-panel.active { display: block; }
+    .modal-recap { background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--r-md); padding: var(--s3) var(--s4); margin-bottom: var(--s4); }
+    .recap-row { display: flex; align-items: center; justify-content: space-between; padding: 0.4rem 0; font-size: 0.82rem; border-bottom: 1px solid var(--border); }
+    .recap-row:last-child { border-bottom: none; }
+    .recap-label { color: var(--text-3); }
+    .recap-val { font-family: var(--font-mono); font-weight: 600; }
+    .modal-error { font-size: 0.8rem; color: var(--red); margin-bottom: var(--s3); display: none; }
+    .modal-error.show { display: block; }
+    .paypal-note { font-size: 0.82rem; color: var(--text-3); line-height: 1.6; padding: var(--s3); background: var(--bg-2); border-radius: var(--r-md); border: 1px solid var(--border); }
+
+    /*  ELITE plan card  */
+    .plan-card-elite {
+      background: linear-gradient(135deg, rgba(34,197,94,0.06) 0%, var(--surface) 60%);
+      border-color: rgba(34,197,94,0.25) !important;
+      position: relative; overflow: hidden;
+    }
+    .plan-card-elite:hover { border-color: rgba(34,197,94,0.55) !important; }
+    .plan-elite-glow {
+      position:absolute;top:-40px;right:-40px;width:140px;height:140px;
+      background:radial-gradient(circle, rgba(34,197,94,0.12) 0%, transparent 70%);
+      pointer-events:none;
+    }
+    .plan-elite-accent { background: linear-gradient(90deg, var(--green) 0%, transparent 100%) !important; }
+
+    /* Plans grid — 4 cols max */
+    @media (min-width: 600px) {
+      .plans-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    /*  Panel card in list  */
+    .my-panel-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--r-lg); padding: var(--s4); margin-bottom: var(--s3);
+      transition: border-color var(--t-fast);
+    }
+    .my-panel-card:hover  { border-color: var(--border-2); }
+    .my-panel-card.expired{ opacity: 0.55; }
+
+    .mpc-header { display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--s3); }
+    .mpc-header-left { display:flex;align-items:center;gap:var(--s2); }
+    .mpc-name { font-weight:700;font-size:0.95rem; }
+    .mpc-plan-badge {
+      font-size:0.6rem;font-weight:700;letter-spacing:0.06em;
+      border:1px solid;padding:1px 6px;border-radius:var(--r-full);
+    }
+    .mpc-status { font-size:0.7rem;font-family:var(--font-mono);font-weight:600; }
+    .mpc-status-active  { color:var(--green); }
+    .mpc-status-expired { color:var(--red); }
+
+    .mpc-fields { display:grid;grid-template-columns:1fr 1fr;gap:var(--s3);margin-bottom:var(--s3); }
+    .mpc-field-full { grid-column:1/-1; }
+    .mpc-field-label { font-size:0.6rem;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-3);margin-bottom:2px; }
+    .mpc-field-val { font-size:0.8rem;font-family:var(--font-mono);color:var(--text-2);word-break:break-all; }
+    .mpc-link { color:var(--blue);text-decoration:none;font-size:0.78rem; }
+    .mpc-link:hover { text-decoration:underline; }
+
+    .mpc-pw-wrap { display:flex;align-items:center;gap:var(--s2); }
+    .mpc-pw-val { font-size:0.8rem;font-family:var(--font-mono);color:var(--text-2); }
+    .mpc-pw-val.masked { letter-spacing:0.12em;color:var(--text-3); }
+    .mpc-pw-btn { background:none;border:none;cursor:pointer;color:var(--text-3);padding:2px;display:flex;align-items:center; }
+    .mpc-pw-btn:hover { color:var(--text); }
+
+    .mpc-expire { font-size:0.7rem;color:var(--text-3);font-family:var(--font-mono);margin-bottom:var(--s3); }
+    .mpc-actions { display:flex;gap:var(--s2); }
+
+    /*  Credentials block (modal succès)  */
+    .creds-block {
+      background: var(--bg-2); border: 1px solid var(--border);
+      border-radius: var(--r-md); padding: var(--s3) var(--s4);
+      margin-bottom: var(--s4);
+    }
+    .cred-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.55rem 0; border-bottom: 1px solid var(--border);
+      font-size: 0.82rem; gap: var(--s3);
+    }
+    .cred-row:last-child { border-bottom: none; }
+    .cred-label { color: var(--text-3); font-size: 0.78rem; flex-shrink: 0; }
+    .cred-val {
+      font-family: var(--font-mono); font-weight: 600; color: var(--text);
+      text-align: right; word-break: break-all;
+    }
+    .cred-val.masked { color: var(--text-3); letter-spacing: 0.12em; }
+    .cred-link { color: var(--blue); text-decoration: none; }
+    .cred-link:hover { text-decoration: underline; }
+
+    /*  Success modal  */
+    .modal-success-inner { max-width: 420px; }
+    .success-checkmark {
+      width: 52px; height: 52px; border-radius: 50%;
+      background: rgba(34,197,94,0.12); border: 2px solid var(--green);
+      color: var(--green); font-size: 1.4rem; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto var(--s3);
+    }
+
+    /*  Overlay de chargement  */
+    #loading-overlay {
+      display: none;
+      position: fixed; inset: 0; z-index: 9999;
+      align-items: center; justify-content: center;
+      flex-direction: column; gap: var(--s5);
+    }
+    #loading-overlay.active { display: flex; }
+
+    /* Flou derrière l'overlay */
+    #loading-overlay.active::before {
+      content: '';
+      position: fixed; inset: 0; z-index: -1;
+      backdrop-filter: blur(10px) saturate(0.7);
+      background: rgba(0,0,0,0.55);
+      animation: fadeInBack 0.3s ease forwards;
+    }
+    @keyframes fadeInBack { from { opacity:0; } to { opacity:1; } }
+
+    /* Logo tournant */
+    #loading-overlay .loading-logo-spin {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      overflow: hidden;
+      animation: logoSpin 1s linear infinite;
+      box-shadow: 0 0 0 4px rgba(255,255,255,0.12), 0 8px 40px rgba(0,0,0,0.5);
+      flex-shrink: 0;
+    }
+    @keyframes logoSpin { to { transform: rotate(360deg); } }
+    #loading-overlay .loading-logo-spin img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+    }
+
+    /* Boite d'étapes */
+    .loading-box {
+      background: rgba(10,10,10,0.85);
+      border: 1px solid var(--border-2);
+      border-radius: var(--r-xl); padding: var(--s5) var(--s6);
+      display: flex; flex-direction: column; align-items: center;
+      gap: var(--s4); min-width: 260px; max-width: 320px;
+      box-shadow: var(--shadow-lg);
+      animation: fadeUp 0.3s var(--ease);
+      backdrop-filter: blur(4px);
+    }
+    @keyframes fadeUp {
+      from { opacity:0; transform: translateY(16px); }
+      to   { opacity:1; transform: translateY(0); }
+    }
+
+    .loading-steps {
+      width: 100%; display: flex; flex-direction: column; gap: var(--s2);
+    }
+    .loading-step {
+      display: flex; align-items: center; gap: var(--s2);
+      font-size: 0.78rem; color: var(--text-3);
+      transition: color 0.3s;
+    }
+    .loading-step.active { color: var(--text); font-weight: 600; }
+    .loading-step.done   { color: var(--green); }
+
+    .lstep-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--border-2); flex-shrink: 0;
+      transition: background 0.3s;
+    }
+    .loading-step.active .lstep-dot { background: var(--text); }
+    .loading-step.done   .lstep-dot { background: var(--green); }
+
+    .loading-msg {
+      font-size: 0.75rem; color: var(--text-3);
+      text-align: center; margin: 0;
+    }
+
+  </style>
+</head>
+<body>
+
+<script src="/js/ui.js"></script>
+<script src="/js/services-guard.js"></script>
+<!-- 
+     OVERLAY CHARGEMENT PANEL
+ -->
+<div id="loading-overlay">
+  <div class="loading-logo-spin">
+    <img src="/logo.jpg" alt="Krinyx"/>
+  </div>
+  <div class="loading-box">
+    <div class="loading-steps" id="loading-steps">
+      <div class="loading-step active" id="lstep-1">
+        <span class="lstep-dot"></span>
+        <span>Vérification des crédits</span>
+      </div>
+      <div class="loading-step" id="lstep-2">
+        <span class="lstep-dot"></span>
+        <span>Création du compte panel</span>
+      </div>
+      <div class="loading-step" id="lstep-3">
+        <span class="lstep-dot"></span>
+        <span>Déploiement du serveur</span>
+      </div>
+      <div class="loading-step" id="lstep-4">
+        <span class="lstep-dot"></span>
+        <span>Finalisation</span>
+      </div>
+    </div>
+    <p class="loading-msg">Création en cours, veuillez patienter…</p>
+  </div>
+</div>
+
+
+
+<!-- 
+     MODAL CONFIRMATION ACHAT
+ -->
+<div class="modal-overlay" id="modal-confirm">
+  <div class="modal">
+    <div class="modal-title"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Confirmer la commande</div>
+
+    <!-- Récap plan -->
+    <div class="modal-recap">
+      <div class="recap-row">
+        <span class="recap-label">Plan</span>
+        <span class="recap-val" id="confirm-plan-name">—</span>
+      </div>
+      <div class="recap-row">
+        <span class="recap-label">RAM</span>
+        <span class="recap-val" id="confirm-ram">—</span>
+      </div>
+      <div class="recap-row">
+        <span class="recap-label">CPU</span>
+        <span class="recap-val" id="confirm-cpu">—</span>
+      </div>
+      <div class="recap-row">
+        <span class="recap-label">Stockage</span>
+        <span class="recap-val" id="confirm-disk">—</span>
+      </div>
+      <div class="recap-row">
+        <span class="recap-label">Durée</span>
+        <span class="recap-val" id="confirm-duration">—</span>
+      </div>
+      <div class="recap-row" style="border-top:1px solid var(--border-2);padding-top:var(--s2);margin-top:2px;">
+        <span class="recap-label" style="font-weight:700;">Coût</span>
+        <span class="recap-val" style="color:var(--text);font-size:1rem;" id="confirm-credits-req">—</span>
+      </div>
+    </div>
+
+    <!-- Solde crédits -->
+    <div style="font-size:0.78rem;color:var(--text-3);margin-bottom:4px;">Votre solde</div>
+    <div style="font-family:var(--font-mono);font-size:1.2rem;font-weight:700;color:var(--text);margin-bottom:var(--s4);">
+      <span id="confirm-credits-balance">0</span> CR
+    </div>
+
+    <!-- Nom du panel -->
+    <div class="form-group" style="margin-bottom:var(--s4);">
+      <label class="form-label">Nom de votre panel</label>
+      <input class="form-input" id="confirm-panel-name" type="text" maxlength="40" placeholder="Ex: MonBot, MonSite…"/>
+    </div>
+
+    <div class="modal-error" id="confirm-error" style="font-size:0.8rem;color:var(--red);margin-bottom:var(--s3);display:none;"></div>
+    <style>#confirm-error.show{display:block!important;}</style>
+
+    <div class="modal-actions">
+      <button class="btn btn-primary" id="btn-confirm-buy"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Confirmer le paiement</button>
+      <button class="btn btn-ghost"   id="btn-confirm-cancel">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!-- 
+     MODAL SUCCÈS — CREDENTIALS
+ -->
+<div class="modal-overlay" id="modal-success">
+  <div class="modal modal-success-inner">
+    <div class="success-checkmark"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></div>
+    <div class="modal-title" style="margin-bottom:var(--s1);">Panel créé avec succès !</div>
+    <div style="font-size:0.8rem;color:var(--text-3);margin-bottom:var(--s4);">
+      Conservez ces identifiants en lieu sûr.
+    </div>
+
+    <!-- Résultats -->
+    <div class="modal-recap">
+      <div class="recap-row">
+        <span class="recap-label">Panel</span>
+        <span class="recap-val" id="result-panel-name">—</span>
+      </div>
+      <div class="recap-row">
+        <span class="recap-label">Plan</span>
+        <span class="recap-val" id="result-plan">—</span>
+      </div>
+      <div class="recap-row">
+        <span class="recap-label">Expire le</span>
+        <span class="recap-val" id="result-expires">—</span>
+      </div>
+    </div>
+
+    <div class="creds-block">
+      <div class="cred-row">
+        <span class="cred-label"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> Lien d'accès</span>
+        <a class="cred-val cred-link" id="result-access-link" href="#" target="_blank" rel="noopener">
+          <span id="result-url">—</span>
+        </a>
+      </div>
+      <div class="cred-row">
+        <span class="cred-label"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg> Utilisateur</span>
+        <span class="cred-val" id="result-username">—</span>
+      </div>
+      <div class="cred-row">
+        <span class="cred-label"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/></svg> Mot de passe</span>
+        <div style="display:flex;align-items:center;gap:var(--s2);">
+          <span class="cred-val masked" id="result-password">—</span>
+          <button class="mpc-pw-btn" id="btn-result-toggle-pw" title="Afficher/masquer">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-primary" id="btn-result-copy">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
+        Copier les accès
+      </button>
+      <button class="btn btn-ghost" id="btn-success-close">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE -->
+<div class="page-wrap">
+
+  <div class="shop-hero">
+    <h1 class="shop-hero-title" data-i18n="panel.title">Boutique Panels</h1>
+    <p class="shop-hero-sub" data-i18n="panel.sub">Choisissez votre offre et obtenez un accès instantané.</p>
+    <div class="pill"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> <span id="hero-credits">0</span> <span data-i18n="panel.credits-available">crédits disponibles</span></div>
+  </div>
+
+  <div class="filter-tabs">
+    <button class="ftab active" data-filter="all">Tous</button>
+    <button class="ftab" data-filter="credits"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Crédits</button>
+    <button class="ftab" data-filter="paypal"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg> PayPal</button>
+  </div>
+
+  <div class="plans-grid" id="plans-grid">
+
+    <!-- STARTER (24h) -->
+    <div class="plan-card" data-plan="basic" data-credits="7" data-price-real="" data-ram="512" data-cpu="50" data-disk="1024" data-duration="1">
+      <div class="plan-accent plan-basic-accent"></div>
+      <span class="plan-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"/><path d="M14.1 6a7 7 0 0 1 1.4 4.3c0 1-.2 1.9-.7 2.7-2-.4-3.5-1.3-4.4-2.7-.8-1.4-1.1-3.3-.1-5.6 2.7.4 4 1.1 3.8 1.3z"/></svg></span>
+      <div class="plan-name">Starter</div>
+      <div class="plan-tagline">Idéal pour tester</div>
+      <div style="margin-bottom:var(--s4);">
+        <div class="plan-price">7 <span style="font-size:1rem;font-weight:400;">CR</span></div>
+        <div style="font-size:0.7rem;color:var(--text-3);font-family:var(--font-mono);margin-top:2px;">24h d'accès</div>
+      </div>
+      <ul class="plan-features">
+        <li><span class="feat-ok"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><polyline points="20 6 9 17 4 12"/></svg></span> 512 MB RAM</li>
+        <li><span class="feat-ok"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><polyline points="20 6 9 17 4 12"/></svg></span> 50% CPU</li>
+        <li><span class="feat-ok"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><polyline points="20 6 9 17 4 12"/></svg></span> 1 GB Stockage</li>
+        <li><span class="feat-ok"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><polyline points="20 6 9 17 4 12"/></svg></span> 1 Base de données</li>
+        <li><span class="feat-ok"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><polyline points="20 6 9 17 4 12"/></svg></span> 1 Backup</li>
+        <li><span class="feat-no"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg></span> Support prioritaire</li>
+      </ul>
+      <button class="btn btn-secondary btn-full"><span>Commander</span></button>
+    </div>
+
+    <!-- PRO (48h) -->
+    <div class="plan-card featured" style="position:relative;" data-plan="pro" data-credits="10" data-price-real="" data-ram="1024" data-cpu="100" data-disk="2048" data-duration="2">
+      <div class="plan-accent plan-pro-accent"></div>
+      <div class="popular-badge"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> Populaire</div>
+      <span class="plan-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span>
+      <div class="plan-name">Pro</div>
+      <div class="plan-tagline">Pour les projets sérieux</div>
+      <div style="margin-bottom:var(--s4);">
+        <div class="plan-price" style="color:var(--purple);">10 <span style="font-size:1rem;font-weight:400;">CR</span></div>
+        <div style="font-size:0.7rem;color:var(--text-3);font-family:var(--font-mono);margin-top:2px;">48h d'accès</div>
+      </div>
+      <ul class="plan-features">
+        <li><span class="feat-ok"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><polyline points="20 6 9 17 4 12"/></svg></span> 1024 MB RAM</li>
+        <li><span class="feat-ok"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><polyline points="20 6 9 17 4 12"/></svg></span> 100% CPU</li>
+        <li><span class="feat-ok"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><polyline points="20 6 9 17 4 12"/></svg></span> 2 GB Stockage</li>
+        <li><span class="feat-ok"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><polyline points="20 6 9 17 4 12"/></svg></span> 2 Bases de données</li>
+        <li><span class="feat-ok"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><polyline points="20 6 9 17 4 12"/></svg></span> 2 Backups</li>
+        <li><span class="feat-ok"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><polyline points="20 6 9 17 4 12"/></svg></span> Support prioritaire</li>
+      </ul>
+      <button class="btn btn-primary btn-full"><span>Commander</span></button>
+    </div>
+
+    <!-- SEMAINE -->
+    <div class="plan-card" data-plan="premium" data-credits="33" data-ram="1024" data-cpu="100" data-disk="2048" data-duration="7">
+      <div class="plan-accent plan-premium-accent"></div>
+      <span class="plan-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 19h20"/><path d="M2 19 5 9l5 5 5-9 5 9-3 10H5l-3-10z"/></svg></span>
+      <div class="plan-name">Semaine</div>
+      <div class="plan-tagline">Performance maximale</div>
+      <div style="margin-bottom:var(--s4);">
+        <div class="plan-price" style="color:var(--orange);">33 <span style="font-size:1rem;font-weight:400;">CR</span></div>
+        <div style="font-size:0.7rem;color:var(--text-3);font-family:var(--font-mono);margin-top:2px;">7 jours d'accès</div>
+      </div>
+      <ul class="plan-features">
+        <li><span class="feat-ok"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> 1024 MB RAM</li>
+        <li><span class="feat-ok"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> 100% CPU</li>
+        <li><span class="feat-ok"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> 2 GB Stockage</li>
+        <li><span class="feat-ok"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> 3 Bases de données</li>
+        <li><span class="feat-ok"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> 3 Backups</li>
+        <li><span class="feat-ok"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> Support prioritaire</li>
+      </ul>
+      <button class="btn btn-secondary btn-full">Commander</button>
+    </div>
+
+    <!-- MENSUEL -->
+    <div class="plan-card plan-card-elite" data-plan="elite" style="grid-column:1/-1;">
+      <div class="plan-accent plan-elite-accent"></div>
+      <div class="plan-elite-glow"></div>
+      <div style="display:flex;align-items:center;gap:var(--s3);margin-bottom:var(--s3);">
+        <span class="plan-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span>
+        <div>
+          <div class="plan-name" style="font-size:1.3rem;">MENSUEL</div>
+          <div class="plan-tagline">Ressources maximales · 1 mois complet</div>
+        </div>
+        <div style="margin-left:auto;text-align:right;">
+          <div class="plan-price" style="color:var(--green);font-size:2rem;">100 <span style="font-size:1rem;font-weight:400;">CR</span></div>
+          <div class="plan-price-unit" style="color:rgba(34,197,94,0.5);">30 jours d'accès</div>
+        </div>
+      </div>
+      <ul class="plan-features" style="display:grid;grid-template-columns:1fr 1fr;gap:var(--s1) var(--s4);">
+        <li><span class="feat-ok" style="color:var(--green);"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> RAM <b>Illimitée</b></li>
+        <li><span class="feat-ok" style="color:var(--green);"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> CPU <b>Illimité</b></li>
+        <li><span class="feat-ok" style="color:var(--green);"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> Stockage <b>Illimité</b></li>
+        <li><span class="feat-ok" style="color:var(--green);"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> BDD <b>Illimitées</b></li>
+        <li><span class="feat-ok" style="color:var(--green);"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> Backups <b>Illimités</b></li>
+        <li><span class="feat-ok" style="color:var(--green);"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> Support <b>Prioritaire</b></li>
+      </ul>
+      <button class="btn btn-full" style="margin-top:var(--s4);background:var(--green);color:#000;font-weight:800;"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg> Commander ELITE</button>
+    </div>
+
+  </div>
+
+  <span class="section-label"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg> Mes panels actifs</span>
+  <div id="my-panels-list">
+    <div style="text-align:center;padding:var(--s5);color:var(--text-3);font-size:0.85rem;">Aucun panel actif</div>
+  </div>
+
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <div class="bn-item" onclick="window.location.href='/dashboard'"><span class="bn-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></span><span>Accueil</span></div>
+  <div class="bn-item" onclick="window.location.href='/dashboard'"><span class="bn-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 1 0-16 0"/></svg></span><span>Profil</span></div>
+  <div class="bn-item active"><span class="bn-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg></span><span>Panels</span></div>
+  <div class="bn-item" onclick="window.location.href='/dashboard'"><span class="bn-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span><span>Crédits</span></div>
+  <div class="bn-item" onclick="window.location.href='/dashboard'"><span class="bn-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><rect width="18" height="10" x="3" y="11" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" x2="8" y1="16" y2="16"/><line x1="16" x2="16" y1="16" y2="16"/></svg></span><span>Bots</span></div>
+</nav>
+
+<script src="/js/panel.js"></script>
+</body>
+</html>

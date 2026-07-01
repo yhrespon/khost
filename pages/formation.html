@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <title>Krinyx | Formations</title>
+  <script>(function(){var t=localStorage.getItem("krinyx_theme")||"dark";document.documentElement.setAttribute("data-theme",t);})()</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/theme_/theme.css"/>
+  <style>
+    html,body{min-height:100%;background:var(--bg);}
+    body{font-family:'DM Sans',system-ui,sans-serif;padding-top:48px;padding-bottom:80px;}
+    .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);z-index:600;opacity:0;transition:all .25s ease;background:var(--surface);border:1px solid var(--border-2);border-radius:999px;padding:.5rem 1.25rem;font-size:.82rem;font-weight:500;white-space:nowrap;box-shadow:var(--shadow-lg);pointer-events:none;}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+    .page{max-width:600px;margin:0 auto;padding:var(--s4);}
+
+    /* Hero */
+    .hero{text-align:center;padding:var(--s6) var(--s4) var(--s5);margin-bottom:var(--s5);}
+    .hero-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 14px;border-radius:999px;border:1px solid var(--border-2);font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);margin-bottom:var(--s3);}
+    .hero-title{font-family:'Syne',sans-serif;font-size:clamp(1.5rem,5vw,2.2rem);font-weight:800;color:var(--text);line-height:1.15;margin-bottom:var(--s3);}
+    .hero-sub{font-size:.88rem;color:var(--text-3);line-height:1.6;max-width:420px;margin:0 auto;}
+
+    /* Filtres */
+    .filters{display:flex;gap:var(--s2);flex-wrap:wrap;margin-bottom:var(--s5);overflow-x:auto;padding-bottom:2px;}
+    .filters::-webkit-scrollbar{height:0;}
+    .ftab{font-size:.75rem;font-weight:600;padding:5px 14px;border-radius:999px;border:1px solid var(--border-2);color:var(--text-3);cursor:pointer;white-space:nowrap;transition:all .15s;background:transparent;}
+    .ftab:hover{color:var(--text-2);border-color:var(--text-3);}
+    .ftab.active{background:var(--text);color:var(--text-inv);border-color:var(--text);}
+
+    /* Catégorie label */
+    .cat-label{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--text-3);margin-bottom:var(--s3);display:flex;align-items:center;gap:var(--s2);}
+    .cat-label::after{content:'';flex:1;height:1px;background:var(--border-2);}
+
+    /* Cards formations */
+    .formations-grid{display:flex;flex-direction:column;gap:var(--s3);margin-bottom:var(--s5);}
+    .form-card{background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-lg);padding:var(--s4);display:flex;gap:var(--s4);align-items:flex-start;transition:all .15s;cursor:pointer;}
+    .form-card:hover{border-color:var(--text-3);box-shadow:var(--shadow-sm);transform:translateY(-1px);}
+    .form-icon{width:46px;height:46px;border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.3rem;}
+    .form-body{flex:1;min-width:0;}
+    .form-title{font-family:'Syne',sans-serif;font-size:.92rem;font-weight:800;color:var(--text);margin-bottom:3px;}
+    .form-desc{font-size:.78rem;color:var(--text-3);line-height:1.5;margin-bottom:var(--s2);}
+    .form-tags{display:flex;flex-wrap:wrap;gap:4px;}
+    .form-tag{font-size:.62rem;font-weight:600;font-family:'DM Mono',monospace;padding:2px 7px;border-radius:999px;background:var(--bg-3);border:1px solid var(--border-2);color:var(--text-3);}
+    .form-badge{font-size:.62rem;font-weight:700;text-transform:uppercase;padding:2px 8px;border-radius:999px;white-space:nowrap;margin-left:auto;}
+    .badge-free{background:rgba(34,197,94,.1);color:var(--green);border:1px solid rgba(34,197,94,.2);}
+    .badge-whatsapp{background:rgba(34,197,94,.1);color:var(--green);border:1px solid rgba(34,197,94,.2);}
+    .badge-soon{background:rgba(249,115,22,.1);color:var(--orange);border:1px solid rgba(249,115,22,.2);}
+    .badge-new{background:rgba(96,165,250,.1);color:var(--blue);border:1px solid rgba(96,165,250,.2);}
+
+    /* CTA footer */
+    .cta-bottom{text-align:center;padding:var(--s6) var(--s4);background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-xl);}
+    .cta-bottom-title{font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;color:var(--text);margin-bottom:var(--s2);}
+    .cta-bottom-sub{font-size:.8rem;color:var(--text-3);margin-bottom:var(--s4);}
+  </style>
+</head>
+<body>
+<script src="/js/ui.js"></script>
+<div class="toast" id="toast"></div>
+
+
+
+<div class="page">
+
+  <div class="hero">
+    <div class="hero-badge">
+      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+      Centre de formations
+    </div>
+    <div class="hero-title">Apprends.<br>Construis. Innove.</div>
+    <div class="hero-sub">Des formations pratiques en développement, création de bots, graphisme et intelligence artificielle — accessibles à tous niveaux.</div>
+  </div>
+
+  <!-- Filtres -->
+  <div class="filters">
+    <button class="ftab active" onclick="filterCat('all',this)">Tout</button>
+    <button class="ftab" onclick="filterCat('dev',this)">Développement</button>
+    <button class="ftab" onclick="filterCat('bots',this)">Bots WhatsApp</button>
+    <button class="ftab" onclick="filterCat('ia',this)">Intelligence Artificielle</button>
+    <button class="ftab" onclick="filterCat('design',this)">Graphisme</button>
+    <button class="ftab" onclick="filterCat('web',this)">Sites Web</button>
+  </div>
+
+  <!-- ─── DÉVELOPPEMENT ─── -->
+  <div class="cat-label" data-cat="dev">Développement</div>
+  <div class="formations-grid">
+
+    <div class="form-card" data-cat="dev" onclick="openForm('js')">
+      <div class="form-icon" style="background:rgba(249,220,92,.1);color:#f7df1e;">JS</div>
+      <div class="form-body">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:var(--s2);">
+          <div class="form-title">JavaScript — De zéro à avancé</div>
+          <span class="form-badge badge-free">Contact</span>
+        </div>
+        <div class="form-desc">Variables, fonctions, promises, async/await, Node.js, API REST, modules ES6+. Formation complète avec exercices pratiques.</div>
+        <div class="form-tags"><span class="form-tag">JS</span><span class="form-tag">Node.js</span><span class="form-tag">API REST</span><span class="form-tag">ES6</span></div>
+      </div>
+    </div>
+
+    <div class="form-card" data-cat="dev" onclick="openForm('nodejs')">
+      <div class="form-icon" style="background:rgba(104,160,99,.12);color:#68a063;">N</div>
+      <div class="form-body">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:var(--s2);">
+          <div class="form-title">Node.js &amp; Express — Serveur Backend</div>
+          <span class="form-badge badge-free">Contact</span>
+        </div>
+        <div class="form-desc">Créer des APIs REST, gérer les sessions, authentification JWT, bases de données JSON/MongoDB, déploiement sur serveur.</div>
+        <div class="form-tags"><span class="form-tag">Node.js</span><span class="form-tag">Express</span><span class="form-tag">JWT</span><span class="form-tag">API</span></div>
+      </div>
+    </div>
+
+    <div class="form-card" data-cat="dev" onclick="openForm('python')">
+      <div class="form-icon" style="background:rgba(55,118,171,.12);color:#3776ab;">Py</div>
+      <div class="form-body">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:var(--s2);">
+          <div class="form-title">Python — Scripting &amp; Automatisation</div>
+          <span class="form-badge badge-soon">Bientôt</span>
+        </div>
+        <div class="form-desc">Scripts d'automatisation, scraping, manipulation de fichiers, intégration avec des APIs tierces.</div>
+        <div class="form-tags"><span class="form-tag">Python</span><span class="form-tag">Automation</span><span class="form-tag">Scraping</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ─── BOTS WHATSAPP / TELEGRAM ─── -->
+  <div class="cat-label" data-cat="bots">Bots Messagerie</div>
+  <div class="formations-grid">
+
+    <div class="form-card" data-cat="bots" onclick="openForm('wxmd')">
+      <div class="form-icon" style="background:rgba(37,211,102,.1);color:#25d366;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="20" x="5" y="2" rx="2"/><path d="M12 18h.01"/></svg>
+      </div>
+      <div class="form-body">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:var(--s2);">
+          <div class="form-title">Créer un Bot WhatsApp XMD</div>
+          <span class="form-badge badge-new">Nouveau</span>
+        </div>
+        <div class="form-desc">Apprends à créer ton propre bot WhatsApp avec Baileys (XMD). Commandes, groupes, médias, protections, menus interactifs.</div>
+        <div class="form-tags"><span class="form-tag">Baileys</span><span class="form-tag">XMD</span><span class="form-tag">Node.js</span><span class="form-tag">WhatsApp</span></div>
+      </div>
+    </div>
+
+    <div class="form-card" data-cat="bots" onclick="openForm('wmd')">
+      <div class="form-icon" style="background:rgba(37,211,102,.1);color:#25d366;">MD</div>
+      <div class="form-body">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:var(--s2);">
+          <div class="form-title">Bot WhatsApp MD — Multi-Device</div>
+          <span class="form-badge badge-free">Contact</span>
+        </div>
+        <div class="form-desc">Architecture multi-device, sessions persistantes, gestion des reconnexions, base de données JSON pour stocker les configs utilisateurs.</div>
+        <div class="form-tags"><span class="form-tag">Multi-Device</span><span class="form-tag">Sessions</span><span class="form-tag">JSON DB</span></div>
+      </div>
+    </div>
+
+    <div class="form-card" data-cat="bots" onclick="openForm('telegram')">
+      <div class="form-icon" style="background:rgba(42,174,245,.1);color:#2aace9;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" x2="11" y1="2" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </div>
+      <div class="form-body">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:var(--s2);">
+          <div class="form-title">Bot Telegram avec node-telegram-bot-api</div>
+          <span class="form-badge badge-free">Contact</span>
+        </div>
+        <div class="form-desc">Créer un bot Telegram fonctionnel, commandes slash, menus inline, gestion de groupes, webhooks, notifications automatiques.</div>
+        <div class="form-tags"><span class="form-tag">Telegram</span><span class="form-tag">Bot API</span><span class="form-tag">Webhook</span></div>
+      </div>
+    </div>
+
+    <div class="form-card" data-cat="bots" onclick="openForm('discord')">
+      <div class="form-icon" style="background:rgba(88,101,242,.1);color:#5865f2;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+      </div>
+      <div class="form-body">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:var(--s2);">
+          <div class="form-title">Bot Discord avec Discord.js</div>
+          <span class="form-badge badge-soon">Bientôt</span>
+        </div>
+        <div class="form-desc">Slash commands, boutons, modals, gestion des rôles, logs, musique, modération automatique avec Discord.js v14.</div>
+        <div class="form-tags"><span class="form-tag">Discord.js</span><span class="form-tag">Slash Cmds</span><span class="form-tag">Modération</span></div>
+      </div>
+    </div>
+
+    <div class="form-card" data-cat="bots" onclick="openForm('entbot')">
+      <div class="form-icon" style="background:rgba(167,139,250,.1);color:var(--purple);">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z"/><path d="m3 9 2.45-4.9A2 2 0 0 1 7.24 3h9.52a2 2 0 0 1 1.8 1.1L21 9"/><path d="M12 3v6"/></svg>
+      </div>
+      <div class="form-body">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:var(--s2);">
+          <div class="form-title">Bot d'Entreprise — CRM &amp; Support Auto</div>
+          <span class="form-badge badge-free">Contact</span>
+        </div>
+        <div class="form-desc">Automatiser le service client, prise de commandes, rappels, suivi des ventes via WhatsApp Business API ou bot personnalisé.</div>
+        <div class="form-tags"><span class="form-tag">WhatsApp Business</span><span class="form-tag">CRM</span><span class="form-tag">Automation</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ─── INTELLIGENCE ARTIFICIELLE ─── -->
+  <div class="cat-label" data-cat="ia">Intelligence Artificielle</div>
+  <div class="formations-grid">
+
+    <div class="form-card" data-cat="ia" onclick="openForm('gpt')">
+      <div class="form-icon" style="background:rgba(16,163,127,.1);color:#10a37f;">AI</div>
+      <div class="form-body">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:var(--s2);">
+          <div class="form-title">Intégrer ChatGPT / OpenAI dans tes projets</div>
+          <span class="form-badge badge-new">Nouveau</span>
+        </div>
+        <div class="form-desc">API OpenAI, prompts engineering, chat contextuel, génération de texte/images avec DALL·E, intégration dans bots et applications web.</div>
+        <div class="form-tags"><span class="form-tag">OpenAI</span><span class="form-tag">GPT-4</span><span class="form-tag">DALL·E</span><span class="form-tag">Prompt</span></div>
+      </div>
+    </div>
+
+    <div class="form-card" data-cat="ia" onclick="openForm('gemini')">
+      <div class="form-icon" style="background:rgba(66,133,244,.1);color:#4285f4;">G</div>
+      <div class="form-body">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:var(--s2);">
+          <div class="form-title">Google Gemini &amp; Deepseek dans tes bots</div>
+          <span class="form-badge badge-free">Contact</span>
+        </div>
+        <div class="form-desc">Intégrer Gemini Pro, Deepseek et autres LLMs dans un bot WhatsApp ou Telegram. Gestion du contexte, limite des tokens, stockage de conversations.</div>
+        <div class="form-tags"><span class="form-tag">Gemini</span><span class="form-tag">Deepseek</span><span class="form-tag">LLM</span><span class="form-tag">Context</span></div>
+      </div>
+    </div>
+
+    <div class="form-card" data-cat="ia" onclick="openForm('ia-projet')">
+      <div class="form-icon" style="background:rgba(239,68,68,.1);color:var(--red);">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+      </div>
+      <div class="form-body">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:var(--s2);">
+          <div class="form-title">IA dans ton projet — Assistant personnel</div>
+          <span class="form-badge badge-soon">Bientôt</span>
+        </div>
+        <div class="form-desc">Créer un assistant IA personnalisé pour ton application : NLP, reconnaissance vocale, réponses intelligentes, fine-tuning de modèles.</div>
+        <div class="form-tags"><span class="form-tag">NLP</span><span class="form-tag">Fine-tuning</span><span class="form-tag">Assistant</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ─── SITES WEB ─── -->
+  <div class="cat-label" data-cat="web">Création de Sites Web</div>
+  <div class="formations-grid">
+
+    <div class="form-card" data-cat="web" onclick="openForm('html-css')">
+      <div class="form-icon" style="background:rgba(228,77,38,.1);color:#e44d26;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+      </div>
+      <div class="form-body">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:var(--s2);">
+          <div class="form-title">HTML / CSS — Site web professionnel</div>
+          <span class="form-badge badge-free">Contact</span>
+        </div>
+        <div class="form-desc">Créer un site vitrine ou portfolio de A à Z. HTML5 sémantique, CSS3, Flexbox, Grid, animations, responsive design.</div>
+        <div class="form-tags"><span class="form-tag">HTML5</span><span class="form-tag">CSS3</span><span class="form-tag">Responsive</span><span class="form-tag">Flexbox</span></div>
+      </div>
+    </div>
+
+    <div class="form-card" data-cat="web" onclick="openForm('react')">
+      <div class="form-icon" style="background:rgba(97,218,251,.1);color:#61dafb;">Re</div>
+      <div class="form-body">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:var(--s2);">
+          <div class="form-title">React.js — Applications Web Dynamiques</div>
+          <span class="form-badge badge-soon">Bientôt</span>
+        </div>
+        <div class="form-desc">Components, hooks, state management, routing, appels API, déploiement sur Vercel/Netlify. Construire une vraie SPA.</div>
+        <div class="form-tags"><span class="form-tag">React</span><span class="form-tag">Hooks</span><span class="form-tag">SPA</span><span class="form-tag">Vercel</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ─── GRAPHISME ─── -->
+  <div class="cat-label" data-cat="design">Graphisme &amp; Design</div>
+  <div class="formations-grid">
+
+    <div class="form-card" data-cat="design" onclick="openForm('flyers')">
+      <div class="form-icon" style="background:rgba(249,115,22,.1);color:var(--orange);">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 11-6 6v3h9l3-3"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></svg>
+      </div>
+      <div class="form-body">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:var(--s2);">
+          <div class="form-title">Création de Flyers &amp; Affiches Pro</div>
+          <span class="form-badge badge-free">Contact</span>
+        </div>
+        <div class="form-desc">Canva Pro, Photoshop, composition graphique, typographie, couleurs, exportation pour impression et réseaux sociaux.</div>
+        <div class="form-tags"><span class="form-tag">Canva</span><span class="form-tag">Photoshop</span><span class="form-tag">Typographie</span><span class="form-tag">Print</span></div>
+      </div>
+    </div>
+
+    <div class="form-card" data-cat="design" onclick="openForm('montage')">
+      <div class="form-icon" style="background:rgba(167,139,250,.1);color:var(--purple);">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect width="15" height="14" x="1" y="5" rx="2" ry="2"/></svg>
+      </div>
+      <div class="form-body">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:var(--s2);">
+          <div class="form-title">Montage Vidéo — Reels &amp; Contenus</div>
+          <span class="form-badge badge-free">Contact</span>
+        </div>
+        <div class="form-desc">CapCut, After Effects, transitions, effets visuels, sous-titres automatiques, optimisation pour TikTok / Instagram Reels / YouTube Shorts.</div>
+        <div class="form-tags"><span class="form-tag">CapCut</span><span class="form-tag">After Effects</span><span class="form-tag">Reels</span><span class="form-tag">TikTok</span></div>
+      </div>
+    </div>
+
+    <div class="form-card" data-cat="design" onclick="openForm('canva-ui')">
+      <div class="form-icon" style="background:rgba(96,165,250,.1);color:var(--blue);">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+      </div>
+      <div class="form-body">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:var(--s2);">
+          <div class="form-title">UI/UX Design — Interfaces Modernes</div>
+          <span class="form-badge badge-soon">Bientôt</span>
+        </div>
+        <div class="form-desc">Figma, design systems, wireframes, prototypes interactifs, principes d'accessibilité et d'expérience utilisateur.</div>
+        <div class="form-tags"><span class="form-tag">Figma</span><span class="form-tag">UX</span><span class="form-tag">Prototype</span><span class="form-tag">Design System</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CTA contact -->
+  <div class="cta-bottom">
+    <div class="cta-bottom-title">Une formation sur mesure ?</div>
+    <div class="cta-bottom-sub">Contacte-nous sur WhatsApp pour une formation personnalisée adaptée à ton niveau et tes objectifs.</div>
+    <a href="https://wa.me/237673941535?text=Bonjour%2C%20je%20suis%20int%C3%A9ress%C3%A9%20par%20une%20formation%20Krinyx." target="_blank" class="btn btn-primary" style="display:inline-flex;align-items:center;gap:8px;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="20" x="5" y="2" rx="2"/><path d="M12 18h.01"/></svg>
+      Contacter sur WhatsApp
+    </a>
+  </div>
+
+</div>
+
+<!-- Modal formation -->
+<div class="modal-overlay" id="modal-form" onclick="if(event.target===this)closeForm()">
+  <div class="modal" style="max-width:460px;">
+    <div style="font-size:1rem;font-weight:800;color:var(--text);margin-bottom:var(--s2);" id="mf-title">Formation</div>
+    <div style="font-size:.82rem;color:var(--text-3);line-height:1.6;margin-bottom:var(--s4);" id="mf-desc"></div>
+    <div style="padding:var(--s3);background:var(--bg-2);border-radius:var(--r-md);font-size:.78rem;color:var(--text-2);margin-bottom:var(--s4);">
+      <strong>Comment s'inscrire ?</strong><br>
+      Contacte-nous sur WhatsApp pour obtenir le programme complet, le planning et le tarif de cette formation.
+    </div>
+    <div style="display:flex;gap:var(--s2);">
+      <a id="mf-wa-link" href="#" target="_blank" class="btn btn-primary" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="20" x="5" y="2" rx="2"/><path d="M12 18h.01"/></svg>
+        S'inscrire via WhatsApp
+      </a>
+      <button class="btn btn-ghost" onclick="closeForm()">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<nav class="bottom-nav">
+  <div class="bn-item" onclick="location.href='/dashboard'">
+    <span class="bn-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></span><span>Accueil</span>
+  </div>
+  <div class="bn-item active">
+    <span class="bn-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></span><span>Formations</span>
+  </div>
+</nav>
+
+<script>
+const FORMATIONS_INFO = {
+  'js':       { title:'JavaScript — De zéro à avancé', desc:'Formation JavaScript complète : variables, fonctions, promesses, async/await, Node.js, APIs REST et modules ES6+. Idéal pour les débutants et ceux qui veulent consolider leurs bases.' },
+  'nodejs':   { title:'Node.js & Express — Backend', desc:'Apprends à créer des APIs robustes avec Express, gérer les sessions et l\'authentification, connecter des bases de données JSON ou MongoDB et déployer ton serveur.' },
+  'python':   { title:'Python — Scripting & Automatisation', desc:'Scripts Python pour automatiser des tâches répétitives, scraper des données web, manipuler des fichiers CSV/JSON et interagir avec des APIs tierces.' },
+  'wxmd':     { title:'Bot WhatsApp XMD', desc:'Créer ton propre bot WhatsApp avec la librairie Baileys. Commandes, gestion de groupes, envoi de médias, protections anti-spam, menus et bien plus.' },
+  'wmd':      { title:'Bot WhatsApp MD Multi-Device', desc:'Architecture multi-device avancée, sessions persistantes sur disque, reconnexion automatique et stockage des configurations par utilisateur.' },
+  'telegram': { title:'Bot Telegram', desc:'Développer un bot Telegram complet : commandes slash, menus inline, gestion de groupes, webhooks et notifications automatiques avec node-telegram-bot-api.' },
+  'discord':  { title:'Bot Discord avec Discord.js', desc:'Slash commands, boutons interactifs, gestion des rôles, logs, commandes de modération et musique avec Discord.js v14.' },
+  'entbot':   { title:'Bot d\'Entreprise', desc:'Automatiser le service client et les ventes avec un bot WhatsApp Business : prise de commandes, rappels automatiques, suivi CRM et reporting.' },
+  'gpt':      { title:'Intégrer ChatGPT dans tes projets', desc:'API OpenAI complète : génération de texte, prompts engineering, gestion du contexte, génération d\'images avec DALL·E et intégration dans bots/apps.' },
+  'gemini':   { title:'Google Gemini & Deepseek', desc:'Intégrer Gemini Pro et Deepseek dans tes applications. Gestion des tokens, mémoire de conversation, comparaison des modèles et cas d\'usage pratiques.' },
+  'ia-projet':{ title:'Assistant IA personnalisé', desc:'Créer un assistant IA pour ton application : NLP, reconnaissance d\'intentions, réponses contextuelles et fine-tuning de modèles open-source.' },
+  'html-css': { title:'HTML / CSS — Site Pro', desc:'Créer un site vitrine ou portfolio professionnel de A à Z. HTML5 sémantique, CSS3, Flexbox, Grid, animations et design responsive multi-appareils.' },
+  'react':    { title:'React.js — SPA Dynamique', desc:'Développer une application web dynamique avec React : components, hooks, state management avec Context ou Redux, routing et déploiement.' },
+  'flyers':   { title:'Création de Flyers & Affiches', desc:'Maîtriser Canva Pro et les bases de Photoshop pour créer des flyers, affiches et visuels pour les réseaux sociaux. Typographie, couleurs et composition.' },
+  'montage':  { title:'Montage Vidéo — Reels & Contenus', desc:'CapCut avancé et After Effects pour créer des vidéos virales : transitions fluides, effets visuels, sous-titres automatiques optimisés pour TikTok et Instagram.' },
+  'canva-ui': { title:'UI/UX Design avec Figma', desc:'Concevoir des interfaces modernes avec Figma : wireframes, prototypes interactifs, design systems, principes UX et handoff développeur.' },
+};
+
+function toast(m) {
+  var t = document.getElementById('toast');
+  t.textContent = m; t.className = 'toast show';
+  clearTimeout(t._t); t._t = setTimeout(() => t.className='toast', 3000);
+}
+
+function openForm(key) {
+  const info = FORMATIONS_INFO[key] || {};
+  document.getElementById('mf-title').textContent = info.title || key;
+  document.getElementById('mf-desc').textContent  = info.desc  || '';
+  const msg = encodeURIComponent('Bonjour ! Je suis intéressé par la formation "' + (info.title || key) + '" sur Krinyx. Pouvez-vous me donner plus d\'informations ?');
+  document.getElementById('mf-wa-link').href = 'https://wa.me/237673941535?text=' + msg;
+  document.getElementById('modal-form').classList.add('open');
+}
+
+function closeForm() {
+  document.getElementById('modal-form').classList.remove('open');
+}
+
+function filterCat(cat, btn) {
+  document.querySelectorAll('.ftab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.form-card').forEach(card => {
+    if (cat === 'all' || card.dataset.cat === cat) {
+      card.style.display = 'flex';
+    } else {
+      card.style.display = 'none';
+    }
+  });
+  document.querySelectorAll('.cat-label').forEach(lbl => {
+    if (cat === 'all' || lbl.dataset.cat === cat) {
+      lbl.style.display = 'flex';
+    } else {
+      lbl.style.display = 'none';
+    }
+  });
+  document.querySelectorAll('.formations-grid').forEach(g => {
+    const visible = [...g.querySelectorAll('.form-card')].some(c => c.style.display !== 'none');
+    g.style.display = visible ? 'flex' : 'none';
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  injectTopbar('/dashboard');
+  ThemeManager.init();
+  i18n.init();
+  initScrollNav();
+  // Solde
+  fetch('/api/me').then(r => r.json()).then(d => {
+    if (d.success && d.user) document.getElementById('nav-cr').textContent = d.user.coins || 0;
+  }).catch(() => {
+    try { var u = JSON.parse(localStorage.getItem('krinyx_session')||'{}'); document.getElementById('nav-cr').textContent = u.credits||u.coins||0; } catch {}
+  });
+});
+</script>
+</body>
+</html>

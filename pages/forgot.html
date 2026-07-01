@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Krinyx | Mot de passe oublié</title>
+  <!-- Krinyx: apply theme+lang instantly to avoid flash -->
+  <script>(function(){var t=localStorage.getItem("krinyx_theme")||"dark";document.documentElement.setAttribute("data-theme",t);var l=localStorage.getItem("krinyx_lang")||"fr";document.documentElement.setAttribute("lang",l);})()</script>
+  <link rel="stylesheet" href="/theme_/theme.css"/>
+  <style>
+    .confirm-view { display: none; text-align: center; }
+    .confirm-view.show { display: block; animation: cardIn 0.3s var(--ease) both; }
+    .confirm-icon { font-size: 2.5rem; margin-bottom: var(--s4); display: block; }
+    .confirm-title { font-size: 1.1rem; font-weight: 700; margin-bottom: var(--s2); }
+    .confirm-desc { font-size: 0.875rem; color: var(--text-3); line-height: 1.6; }
+  </style>
+</head>
+<body>
+
+<script src="/js/ui.js"></script>
+
+<div class="auth-page">
+  <div class="auth-card">
+
+    <!-- Form view -->
+    <div id="form-view">
+
+      <div class="auth-header">
+        <div class="auth-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><rect width="11" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg></div>
+        <h1 class="auth-title" data-i18n="forgot.title">Mot de passe oublié</h1>
+        <p class="auth-sub" data-i18n="forgot.sub">Réinitialisation par email</p>
+      </div>
+
+      <!-- Steps -->
+      <div class="steps-bar" style="margin-bottom:var(--s5);">
+        <div class="step-segment done" id="step1"></div>
+        <div class="step-segment" id="step2"></div>
+        <div class="step-segment" id="step3"></div>
+      </div>
+
+      <p style="font-size:0.875rem;color:var(--text-3);margin-bottom:var(--s5);text-align:center;"
+         data-i18n="forgot.desc">
+        Entrez votre email pour recevoir un lien de réinitialisation.
+      </p>
+
+      <div class="alert" id="alert" role="alert"></div>
+
+      <form class="auth-form" id="forgotForm" novalidate>
+
+        <div class="form-group">
+          <label class="form-label" for="email" data-i18n="forgot.email">Adresse email</label>
+          <div class="input-wrap">
+            <span class="input-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg></span>
+            <input type="email" id="email" class="form-input has-icon"
+                   placeholder="exemple@krinyx.io" required/>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-full" id="btnForgot">
+          <span class="btn-text" data-i18n="forgot.btn">Envoyer le lien</span>
+          <span class="btn-load">
+            <div class="dh-spin dh-spin-sm"><img src="/logo.jpg" alt="" style="width:100%;height:100%;object-fit:cover;"/></div>
+            <span data-i18n="forgot.loading">Envoi…</span>
+          </span>
+        </button>
+
+      </form>
+
+      <div style="text-align:center;margin-top:var(--s4);">
+        <a href="login.html" class="btn btn-ghost btn-sm" data-i18n="forgot.back">
+          Retour à la connexion
+        </a>
+      </div>
+
+    </div>
+
+    <!-- Confirmation view -->
+    <div id="confirm-view" class="confirm-view">
+      <span class="confirm-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><polyline points="20 6 9 17 4 12"/></svg></span>
+      <div class="confirm-title" data-i18n="forgot.success-title">Email envoyé !</div>
+      <p class="confirm-desc" data-i18n="forgot.success-desc">
+        Vérifiez votre boîte mail. Le lien expirera dans 24h.
+      </p>
+      <div style="margin-top:var(--s5);">
+        <a href="login.html" class="btn btn-secondary btn-full" data-i18n="forgot.back">
+          Retour à la connexion
+        </a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  injectTopbar('/index.html');
+  ThemeManager.init();
+  initScrollNav();
+  i18n.init();
+
+  function showAlert(type, msg) {
+    const a = document.getElementById('alert');
+    a.className = `alert alert-${type} show`;
+    a.textContent = msg;
+  }
+
+  document.getElementById('forgotForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn   = document.getElementById('btnForgot');
+    const email = document.getElementById('email').value.trim();
+    const t = i18n.t.bind(i18n);
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return showAlert('error', t('login.err.email'));
+    }
+
+    btn.classList.add('btn-loading'); btn.disabled = true;
+
+    // Animate steps
+    document.getElementById('step2').classList.add('done');
+    setTimeout(() => document.getElementById('step3').classList.add('done'), 400);
+
+    try {
+      await fetch('/api/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      // Always show confirmation (sécurité : ne pas révéler si l'email existe)
+    } catch(e) {
+      console.warn('[forgot]', e.message);
+    }
+
+    setTimeout(() => {
+      document.getElementById('form-view').style.display = 'none';
+      document.getElementById('confirm-view').classList.add('show');
+    }, 800);
+  });
+});
+</script>
+</body>
+</html>

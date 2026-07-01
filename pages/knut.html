@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <title>Krinyx | Déployer KNUT XMD V4</title>
+  <script>(function(){var t=localStorage.getItem("krinyx_theme")||"dark";document.documentElement.setAttribute("data-theme",t);})()</script>
+  <link rel="stylesheet" href="/theme_/theme.css"/>
+  <style>
+    html, body { height: 100%; overflow: hidden; background: var(--bg); transition: background var(--t-mid); }
+    .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px); z-index: 500; opacity: 0; transition: all 0.25s var(--ease); background: var(--surface); border: 1px solid var(--border-2); border-radius: var(--r-full); padding: 0.5rem 1.25rem; font-size: 0.85rem; font-weight: 500; white-space: nowrap; box-shadow: var(--shadow-lg); pointer-events: none; }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    @media (min-width: 700px) { .toast { bottom: 20px; } }
+    .tabs { display: flex; gap: var(--s2); background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--r-lg); padding: var(--s1); margin-bottom: var(--s4); }
+    .tab { flex: 1; padding: var(--s2) var(--s3); border-radius: var(--r-md); font-size: 0.82rem; font-weight: 600; text-align: center; cursor: pointer; color: var(--text-3); transition: all var(--t-fast); border: 1px solid transparent; display: flex; align-items: center; justify-content: center; gap: 6px; }
+    .tab.active { background: var(--surface); color: var(--text); border-color: var(--border-2); box-shadow: var(--shadow-sm); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+    .code-box { background: var(--bg-2); border: 2px solid var(--border-2); border-radius: var(--r-lg); padding: var(--s6) var(--s4); text-align: center; margin-bottom: var(--s3); }
+    .code-val { font-family: var(--font-mono); font-size: 1.6rem; font-weight: 800; letter-spacing: 0.22em; color: var(--text); word-break: break-all; line-height: 1.2; }
+    .code-lbl { font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-3); margin-bottom: var(--s3); display: flex; align-items: center; justify-content: center; gap: 5px; }
+    .code-hint { font-size: 0.75rem; color: var(--text-3); margin-top: var(--s3); }
+    .qr-img { width: 200px; height: 200px; border-radius: var(--r-md); background: #fff; padding: 8px; display: block; margin: 0 auto var(--s3); }
+    .steps { margin-bottom: var(--s4); }
+    .step { display: flex; align-items: flex-start; gap: var(--s3); padding: var(--s3) 0; border-bottom: 1px solid var(--border); }
+    .step:last-child { border-bottom: none; }
+    .step-num { width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0; background: var(--bg-3); border: 1px solid var(--border-2); font-size: 0.7rem; font-weight: 700; font-family: var(--font-mono); display: flex; align-items: center; justify-content: center; color: var(--text-2); }
+    .step-txt { font-size: 0.82rem; color: var(--text-2); line-height: 1.5; }
+    .step-txt strong { color: var(--text); }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+    .dot-pulse { animation: pulse 1.5s infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+<script src="/js/ui.js"></script>
+<div class="toast" id="toast"></div>
+
+<aside class="sidebar">
+  <div class="sb-section">
+    <span class="sb-label">KNUT XMD V4</span>
+    <div class="sb-item active" id="sb-pair" onclick="switchTab('pair')">
+      <span class="sb-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+      Code de Pairing
+    </div>
+    <div class="sb-item" id="sb-qr" onclick="switchTab('qr')">
+      <span class="sb-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/></svg></span>
+      QR Code
+    </div>
+  </div>
+  <div class="sb-section">
+    <span class="sb-label">Infos bot</span>
+    <div style="padding: var(--s2) var(--s4); font-size: 0.72rem; color: var(--text-3); line-height: 1.8;">
+      Code : <span style="font-family:var(--font-mono);color:var(--text-2);">KNUT1204</span><br>
+      Mode : Sans préfixe<br>
+      Version : V4
+    </div>
+  </div>
+</aside>
+
+<main class="main-content" style="overflow-y:auto;">
+  <div style="padding:var(--s4); max-width:480px; margin:0 auto;">
+
+    <div style="display:flex;align-items:center;gap:var(--s3);margin-bottom:var(--s5);">
+      <img src="/knutxmd/knut.jpg" alt="KNUT XMD V4" style="width:52px;height:52px;border-radius:var(--r-md);object-fit:cover;border:1px solid var(--border);" onerror="this.style.display='none'"/>
+      <div>
+        <div style="font-size:1.15rem;font-weight:800;">KNUT XMD V4</div>
+        <div style="font-size:0.78rem;color:var(--text-3);">KNUT XMD V4 · Sans préfixe</div>
+      <div style="display:inline-flex;align-items:center;gap:5px;margin-top:var(--s1);padding:3px 10px;border-radius:var(--r-full);background:var(--bg-3);border:1px solid var(--border-2);font-size:0.65rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-2);"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> KNUT</div>
+      </div>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:6px;font-size:0.72rem;font-family:var(--font-mono);color:var(--green);">
+        <div style="width:7px;height:7px;border-radius:50%;background:var(--green);" class="dot-pulse"></div>
+        EN LIGNE
+      </div>
+    </div>
+
+    <div class="tabs">
+      <div class="tab active" id="tab-pair" onclick="switchTab('pair')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Pairing Code
+      </div>
+      <div class="tab" id="tab-qr" onclick="switchTab('qr')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/></svg>
+        QR Code
+      </div>
+    </div>
+
+    <!-- PAIRING TAB -->
+    <div class="tab-panel active" id="panel-pair">
+      <div class="form-group" style="margin-bottom:var(--s4);">
+        <label class="form-label">Numéro WhatsApp</label>
+        <div class="input-wrap">
+          <span class="input-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="20" x="5" y="2" rx="2"/><path d="M12 18h.01"/></svg></span>
+          <input class="form-input has-icon" id="pair-phone" type="tel" placeholder="2376XXXXXXXX" autocomplete="tel"/>
+        </div>
+        <div style="font-size:0.72rem;color:var(--text-3);margin-top:4px;">Indicatif pays inclus · ex: 237, 225, 221…</div>
+      </div>
+
+      <button class="btn btn-primary btn-full" id="btn-pair">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Générer le code de pairing
+      </button>
+
+      <div id="pair-result" style="display:none;margin-top:var(--s4);">
+        <div class="code-box">
+          <div class="code-lbl">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Code de pairing
+          </div>
+          <div class="code-val" id="pair-code">—</div>
+          <div class="code-hint">Valable ~2 minutes · Entre-le dans WhatsApp</div>
+        </div>
+        <button class="btn btn-primary btn-full" id="btn-copy-code">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
+          Copier le code
+        </button>
+      </div>
+
+      <div id="pair-error" style="display:none;margin-top:var(--s3);font-size:0.82rem;color:var(--red);padding:var(--s3);background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:var(--r-md);"></div>
+
+      <div class="steps" style="margin-top:var(--s5);">
+        <div class="step"><div class="step-num">1</div><div class="step-txt">Entre ton <strong>numéro WhatsApp</strong> avec indicatif pays (ex: <code style="font-family:var(--font-mono);font-size:0.8rem;">2376XXXXXXXX</code>)</div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-txt">Clique <strong>Générer le code</strong> — un code à 8 caractères apparaît</div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-txt">Sur WhatsApp <strong>Appareils liés Lier un appareil Lier avec un numéro</strong> entre le code</div></div>
+      </div>
+    </div>
+
+    <!-- QR TAB -->
+    <div class="tab-panel" id="panel-qr">
+      <div class="form-group" style="margin-bottom:var(--s4);">
+        <label class="form-label">Numéro WhatsApp</label>
+        <div class="input-wrap">
+          <span class="input-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="20" x="5" y="2" rx="2"/><path d="M12 18h.01"/></svg></span>
+          <input class="form-input has-icon" id="qr-phone" type="tel" placeholder="2376XXXXXXXX"/>
+        </div>
+      </div>
+
+      <button class="btn btn-primary btn-full" id="btn-qr">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/></svg>
+        Générer le QR Code
+      </button>
+
+      <div id="qr-result" style="display:none;margin-top:var(--s4);text-align:center;">
+        <img id="qr-img" class="qr-img" src="" alt="QR Code"/>
+        <div style="font-size:0.78rem;color:var(--text-3);">Scanne ce QR depuis WhatsApp</div>
+        <div style="font-size:0.7rem;color:var(--text-3);margin-top:4px;" id="qr-hint">Valable ~2 minutes</div>
+      </div>
+      <div id="qr-error" style="display:none;margin-top:var(--s3);font-size:0.82rem;color:var(--red);padding:var(--s3);background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:var(--r-md);"></div>
+
+      <div class="steps" style="margin-top:var(--s5);">
+        <div class="step"><div class="step-num">1</div><div class="step-txt">Entre ton <strong>numéro WhatsApp</strong> avec indicatif pays</div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-txt">Clique <strong>Générer le QR</strong> — le code QR apparaît</div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-txt">Sur WhatsApp <strong>Appareils liés Lier un appareil</strong> scanne le QR</div></div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<nav class="bottom-nav">
+  <div class="bn-item" onclick="location.href='/dashboard'">
+    <span class="bn-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></span>
+    <span>Accueil</span>
+  </div>
+  <div class="bn-item active" id="bn-pair" onclick="switchTab('pair')">
+    <span class="bn-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+    <span>Pairing</span>
+  </div>
+  <div class="bn-item" id="bn-qr" onclick="switchTab('qr')">
+    <span class="bn-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/></svg></span>
+    <span>QR Code</span>
+  </div>
+</nav>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  injectTopbar('/dashboard');
+  ThemeManager.init();
+  initScrollNav();
+  document.getElementById('btn-theme').addEventListener('click', () => ThemeManager.toggle());
+
+  function toast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.className = 'toast show';
+    clearTimeout(t._t); t._t = setTimeout(() => t.className = 'toast', 3000);
+  }
+
+  window.switchTab = function(name) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    document.getElementById('panel-' + name).classList.add('active');
+    ['sb-pair','sb-qr'].forEach(id => { const el = document.getElementById(id); if(el) el.classList.remove('active'); });
+    const sb = document.getElementById('sb-' + name); if (sb) sb.classList.add('active');
+    ['bn-pair','bn-qr'].forEach(id => { const el = document.getElementById(id); if(el) el.classList.remove('active'); });
+    const bn = document.getElementById('bn-' + name); if (bn) bn.classList.add('active');
+  };
+
+  function copyText(text) {
+    if (navigator.clipboard && location.protocol === 'https:') {
+      navigator.clipboard.writeText(text).then(() => toast('Code copié !'));
+    } else {
+      const ta = document.createElement('textarea');
+      ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+      document.body.removeChild(ta); toast('Code copié !');
+    }
+  }
+
+  // PAIRING
+  document.getElementById('btn-pair').addEventListener('click', async () => {
+    const phone = document.getElementById('pair-phone').value.trim();
+    const pairErr = document.getElementById('pair-error');
+    const pairRes = document.getElementById('pair-result');
+    const pairCode = document.getElementById('pair-code');
+    const btnPair = document.getElementById('btn-pair');
+    pairErr.style.display = 'none'; pairRes.style.display = 'none';
+    if (!phone) { pairErr.textContent = 'Numéro requis.'; pairErr.style.display = ''; return; }
+    btnPair.disabled = true;
+    btnPair.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin .8s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Génération…';
+    let userId = null;
+    try { const me = await fetch('/api/me'); if (me.ok) { const d = await me.json(); userId = d.user?.id || null; } } catch {}
+    try {
+      const url = `/knutxmd/pair/code?number=${encodeURIComponent(phone)}${userId ? '&userId=' + userId : ''}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.error) { pairErr.textContent = data.error; pairErr.style.display = ''; }
+      else if (data.code) { pairCode.textContent = data.code; pairRes.style.display = ''; toast('Code généré ! Entre-le dans WhatsApp.'); }
+      else if (data.status) { pairErr.textContent = data.status; pairErr.style.display = ''; pairErr.style.color = 'var(--green)'; }
+    } catch { pairErr.textContent = 'Erreur serveur. Réessaie.'; pairErr.style.display = ''; }
+    finally {
+      btnPair.disabled = false;
+      btnPair.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Générer le code de pairing';
+    }
+  });
+
+  document.getElementById('btn-copy-code').addEventListener('click', () => {
+    copyText(document.getElementById('pair-code').textContent);
+  });
+
+  // QR
+  document.getElementById('btn-qr').addEventListener('click', async () => {
+    const phone = document.getElementById('qr-phone').value.trim();
+    const qrErr = document.getElementById('qr-error');
+    const qrRes = document.getElementById('qr-result');
+    const qrImg = document.getElementById('qr-img');
+    const btnQr = document.getElementById('btn-qr');
+    qrErr.style.display = 'none'; qrRes.style.display = 'none';
+    if (!phone) { qrErr.textContent = 'Numéro requis.'; qrErr.style.display = ''; return; }
+    btnQr.disabled = true; btnQr.textContent = 'Génération du QR…';
+    try {
+      const res = await fetch(`/rokxd/qr?number=${encodeURIComponent(phone)}`);
+      const data = await res.json();
+      if (data.error) { qrErr.textContent = data.error; qrErr.style.display = ''; }
+      else if (data.qr) {
+        qrImg.src = data.qr; qrRes.style.display = ''; toast('QR généré ! Scanne-le depuis WhatsApp.');
+        let secs = 120;
+        const hint = document.getElementById('qr-hint');
+        const cd = setInterval(() => { secs--; hint.textContent = `Valable encore ${secs}s`; if (secs <= 0) { clearInterval(cd); hint.textContent = 'QR expiré — génère-en un nouveau'; } }, 1000);
+      }
+    } catch { qrErr.textContent = 'Erreur serveur. Réessaie.'; qrErr.style.display = ''; }
+    finally { btnQr.disabled = false; btnQr.textContent = 'Générer le QR Code'; }
+  });
+});
+</script>
+</body>
+</html>
