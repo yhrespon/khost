@@ -23,29 +23,38 @@ import {
 dotenv.config();
 
 // ══════════════════════════════════════════════════════
-//  📧  EMAIL — Nodemailer (Gmail hardcodé)
+//  📧  EMAIL — Nodemailer (config via .env)
 // ══════════════════════════════════════════════════════
-const EMAIL_USER = "yenohyenoh209@gmail.com";
-const EMAIL_PASS = "nbcg xeen earl irta";
-const EMAIL_NAME = "Krinyx";
+const EMAIL_USER = process.env.EMAIL_USER || '';
+const EMAIL_PASS = process.env.EMAIL_PASS || '';
+const EMAIL_NAME = process.env.EMAIL_NAME || 'Krinyx';
 const EMAIL_FROM = `"${EMAIL_NAME}" <${EMAIL_USER}>`;
+const EMAIL_ENABLED = !!(EMAIL_USER && EMAIL_PASS);
 
-const mailer = nodemailer.createTransport({
-  service: "gmail",
-  auth: { user: EMAIL_USER, pass: EMAIL_PASS }
-});
-mailer.verify((err) => {
-  if (err) console.warn("⚠️ [EMAIL] Connexion Gmail échouée:", err.message);
-  else     console.log("✅ [EMAIL] Gmail connecté :", EMAIL_USER);
-});
+const mailer = EMAIL_ENABLED
+  ? nodemailer.createTransport({ service: 'gmail', auth: { user: EMAIL_USER, pass: EMAIL_PASS } })
+  : null;
+
+if (EMAIL_ENABLED) {
+  mailer.verify((err) => {
+    if (err) console.warn('⚠️ [EMAIL] Connexion Gmail échouée:', err.message);
+    else     console.log('✅ [EMAIL] Gmail connecté :', EMAIL_USER);
+  });
+} else {
+  console.warn('⚠️ [EMAIL] EMAIL_USER / EMAIL_PASS absents du .env — envoi d\'emails désactivé.');
+}
 
 async function sendMail(to, subject, html) {
+  if (!EMAIL_ENABLED) {
+    console.warn('[EMAIL] Envoi ignoré (non configuré) →', to, '|', subject);
+    return false;
+  }
   try {
     await mailer.sendMail({ from: EMAIL_FROM, to, subject, html });
-    console.log("[EMAIL] Envoyé à", to);
+    console.log('[EMAIL] Envoyé à', to);
     return true;
   } catch (e) {
-    console.error("[EMAIL] Erreur:", e.message);
+    console.error('[EMAIL] Erreur:', e.message);
     return false;
   }
 }
@@ -227,30 +236,52 @@ const PANEL_PRICE     = parseInt(process.env.PANEL_PRICE_CREDITS || '20');
 const PANEL_DURATION  = parseInt(process.env.PANEL_DURATION_DAYS || '3');
 const USERS_FILE      = path.join(__dirname, 'users.json');
 const PANELS_FILE     = path.join(__dirname, 'panels.json');
-const ADMIN_CREDENTIALS = [
-  { username: 'Raizel', email: 'devraizel@gmail.com',    password: 'Devraizel77' },
-  { username: 'Knut',   email: 'knutsteve400@gmail.com', password: 'Knut1204'    }
-];
+// Comptes admin bootstrap : définissables via .env (recommandé en prod),
+// sinon valeurs par défaut ci-dessous (à changer après le premier démarrage).
+const ADMIN_CREDENTIALS = (() => {
+  if (process.env.ADMIN_ACCOUNTS) {
+    try {
+      const parsed = JSON.parse(process.env.ADMIN_ACCOUNTS);
+      if (Array.isArray(parsed) && parsed.length) return parsed;
+    } catch {
+      console.warn('⚠️ [ADMIN] ADMIN_ACCOUNTS mal formé (JSON attendu), utilisation des valeurs par défaut.');
+    }
+  }
+  console.warn('⚠️ [ADMIN] Utilisation des identifiants admin par défaut — définis ADMIN_ACCOUNTS dans .env en production.');
+  return [
+    { username: 'Raizel', email: 'devraizel@gmail.com',    password: 'Devraizel77' },
+    { username: 'Knut',   email: 'knutsteve400@gmail.com', password: 'Knut1204'    }
+  ];
+})();
 const ADMIN_EMAILS = ADMIN_CREDENTIALS.map(a => a.email);
 
 // ══════════════════════════════════════════════════════
-// 💰 MONEY FUSION — Constantes HARDCODÉES
+// 💰 MONEY FUSION — Config via .env
 // ══════════════════════════════════════════════════════
-const FUSION_MERCHANT_ID    = '69baa0c5d64e43f8715d8bf8';
-const FUSION_PAY_SLUG       = '39e33a3b59fb3d89';          // slug de ta page Krinyx
-const FUSION_BASE_PAY_URL   = `https://pay.moneyfusion.net/Krinyx/${FUSION_PAY_SLUG}/pay/`;
+const FUSION_MERCHANT_ID    = process.env.FUSION_MERCHANT_ID || '';
+const FUSION_PAY_SLUG       = process.env.FUSION_PAY_SLUG    || '';
+const FUSION_SHOP_NAME      = process.env.FUSION_SHOP_NAME   || 'Krinyx';
+const FUSION_BASE_PAY_URL   = process.env.FUSION_API_URL
+  || `https://pay.moneyfusion.net/${FUSION_SHOP_NAME}/${FUSION_PAY_SLUG}/pay/`;
 const FUSION_WEBHOOK_SECRET = process.env.FUSION_WEBHOOK_SECRET || '';
-const FUSION_ALLOWED_IP     = '192.168.1.1';               // ← Remplace par ton IP publique réelle
-const APP_URL               = process.env.APP_URL || 'https://fi1.bot-hosting.net:6147';
-const CREDIT_RATE           = 15;   // 1 CR = 15 FCFA
-const FUSION_MIN_FCFA       = 250;
+const FUSION_ALLOWED_IP     = process.env.FUSION_ALLOWED_IP || '';         // IP publique du serveur Money Fusion
+const APP_URL               = process.env.APP_URL || `http://localhost:${process.env.PORT || 20395}`;
+const CREDIT_RATE           = parseInt(process.env.CREDIT_RATE     || '15');   // 1 CR = 15 FCFA
+const FUSION_MIN_FCFA       = parseInt(process.env.FUSION_MIN_FCFA || '250');
+
+if (!FUSION_MERCHANT_ID || !FUSION_PAY_SLUG) {
+  console.warn('⚠️ [FUSION] FUSION_MERCHANT_ID / FUSION_PAY_SLUG absents du .env — paiements désactivés.');
+}
+if (!FUSION_ALLOWED_IP) {
+  console.warn('⚠️ [FUSION] FUSION_ALLOWED_IP non défini — le webhook refusera toutes les requêtes tant que cette IP n\'est pas configurée.');
+}
 
 /* ════════════════════════════════════════
-   PTERODACTYL — CONFIG
+   PTERODACTYL — CONFIG (via .env uniquement)
 ════════════════════════════════════════ */
 const PTERO = {
-  url:    process.env.PTERO_URL     || 'https://panel.danscot.dev',
-  apiKey: process.env.PTERO_API_KEY || 'ptla_zrU1vWteCzsd1tHXpre2SGi7jTTPFx0TcQo9P1bGXS8',
+  url:    process.env.PTERO_URL     || '',
+  apiKey: process.env.PTERO_API_KEY || '',
   ram:    parseInt(process.env.PANEL_RAM_MB  || '512'),
   cpu:    parseInt(process.env.PANEL_CPU_PCT || '100'),
   disk:   parseInt(process.env.PANEL_DISK_MB || '1024'),
@@ -489,16 +520,26 @@ const safeUser = u => {
 /* ════════════════════════════════════════
    MIDDLEWARE
 ════════════════════════════════════════ */
+const NODE_ENV = process.env.NODE_ENV || 'production';
+if (!process.env.SESSION_SECRET) {
+  console.warn('⚠️ [SESSION] SESSION_SECRET absent du .env — utilisation d\'une valeur par défaut non sécurisée.');
+}
+
 app.disable('x-powered-by');
-app.set('trust proxy', 1);
+app.set('trust proxy', 1); // nécessaire derrière un reverse proxy (nginx) sur le VPS
 app.use(compression());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json({ limit: '5mb' }));
+app.use(bodyParser.urlencoded({ extended: true, limit: '5mb' }));
 app.use(session({
   secret:            process.env.SESSION_SECRET || 'krinyx_rokxd_2025',
   resave:            false,
   saveUninitialized: false,
-  cookie:            { httpOnly: true, maxAge: 1000 * 60 * 60 * 6 }
+  cookie: {
+    httpOnly: true,
+    maxAge:   1000 * 60 * 60 * 6,
+    secure:   process.env.COOKIE_SECURE === 'true', // true si HTTPS géré en amont (nginx + certbot)
+    sameSite: 'lax'
+  }
 }));
 
 app.get('/api/config', (req, res) => {
@@ -1501,18 +1542,37 @@ app.get('*', (req, res) => {
 });
 
 /* ════════════════════════════════════════
+   HEALTHCHECK (utile pour nginx / monitoring VPS)
+════════════════════════════════════════ */
+app.get('/health', (req, res) => res.status(200).json({ status: 'ok', uptime: process.uptime() }));
+
+/* ════════════════════════════════════════
+   ROBUSTESSE PROCESS — VPS / PM2
+════════════════════════════════════════ */
+process.on('unhandledRejection', (reason) => {
+  console.error('⚠️ [UNHANDLED REJECTION]', reason);
+});
+process.on('uncaughtException', (err) => {
+  console.error('⚠️ [UNCAUGHT EXCEPTION]', err);
+  // On ne process.exit() pas volontairement pour éviter de couper le service sur une erreur non fatale.
+  // PM2 redémarre automatiquement si le process meurt réellement.
+});
+
+/* ════════════════════════════════════════
    DÉMARRAGE
 ════════════════════════════════════════ */
+const HOST = process.env.HOST || '0.0.0.0';
+
 (async () => {
   await initDB();
   await pteroDiscover();
-  app.listen(PORT, () => {
+  const server = app.listen(PORT, HOST, () => {
     console.log('');
     console.log('  ╔══════════════════════════════════════════════╗');
     console.log('  ║   Krinyx v2.0 — Raizel & Knut               ║');
     console.log('  ║   Base de données : users.json               ║');
     console.log('  ╚══════════════════════════════════════════════╝');
-    console.log(`  ► http://localhost:${PORT}`);
+    console.log(`  ► Écoute sur ${HOST}:${PORT} (env: ${NODE_ENV})`);
     console.log('  ► ROK XD     → /rokxd');
     console.log('  ► KNUT XMD   → /knutxmd');
     console.log('  ► HADES XMD  → /hadesxmd');
@@ -1521,11 +1581,23 @@ app.get('*', (req, res) => {
     console.log('  ► KYRO XMD   → /kyroxmd');
     console.log('  ► SADEUS XMD → /sadeusxmd');
     console.log('  ► DB         → users.json');
-    console.log(`  ► Pterodactyl : ${pteroOk() ? '[OK]' : '[OFF]'}`);
-    console.log(`  ► Email       : ${EMAIL_USER}`);
-    console.log(`  ► Money Fusion: IP autorisée = ${FUSION_ALLOWED_IP}`);
+    console.log(`  ► Pterodactyl : ${pteroOk() ? '[OK]' : '[OFF — PTERO_URL/PTERO_API_KEY manquants]'}`);
+    console.log(`  ► Email       : ${EMAIL_ENABLED ? EMAIL_USER : '[OFF — EMAIL_USER/EMAIL_PASS manquants]'}`);
+    console.log(`  ► Money Fusion: IP autorisée = ${FUSION_ALLOWED_IP || '[NON DÉFINIE]'}`);
     console.log(`  ► APP_URL     : ${APP_URL}`);
     console.log('');
     setTimeout(restoreSessions, 3000);
   });
+
+  const shutdown = (signal) => {
+    console.log(`\n  [SHUTDOWN] Signal ${signal} reçu — arrêt propre du serveur...`);
+    server.close(() => {
+      console.log('  [SHUTDOWN] Serveur arrêté.');
+      process.exit(0);
+    });
+    // Sécurité : force l'arrêt si close() ne répond pas sous 10s
+    setTimeout(() => process.exit(1), 10000).unref();
+  };
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+  process.on('SIGINT',  () => shutdown('SIGINT'));
 })();
